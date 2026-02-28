@@ -1,0 +1,1 @@
+Error: OCR could not construct the required 16 complete rows of 7 numeric values from the image. Try providing a direct screenshot or the original Excel file instead of a phone photo.

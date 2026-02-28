@@ -1,0 +1,1 @@
+Error: Google Cloud Vision found 8 valid data rows, but 16 are required. The image might be too blurry, cut off, or not contain the full table.

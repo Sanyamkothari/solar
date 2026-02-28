@@ -1,0 +1,46 @@
+2026-02-26 17:29:55 | INFO     | QC_Automation_Logger | QC Automation System Started.
+2026-02-26 17:29:55 | INFO     | QC_Automation_Logger | [BATCH_20260226_172955_F71D5736] Detected new file: df0140e-ce6e-cdbf-67a-fe26a31eb04_Money_Blocks_Assessment_IMK.xlsx | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-02-26 17:29:55 | INFO     | QC_Automation_Logger | Routing to Excel Parser...
+2026-02-26 17:29:55 | ERROR    | QC_Automation_Logger | Validation Error during extraction: Excel parsing failed. Expected 16 bus bars, but only found 0 valid rows.
+2026-02-26 17:29:55 | ERROR    | QC_Automation_Logger | [BATCH_20260226_172955_F71D5736] Extraction Failed.
+2026-02-26 17:29:55 | INFO     | QC_Automation_Logger | Moved df0140e-ce6e-cdbf-67a-fe26a31eb04_Money_Blocks_Assessment_IMK.xlsx to failed/BATCH_20260226_172955_F71D5736_df0140e-ce6e-cdbf-67a-fe26a31eb04_Money_Blocks_Assessment_IMK.xlsx
+2026-02-26 17:43:38 | INFO     | QC_Automation_Logger | [BATCH_20260226_174338_69F92097] Detected new file: WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-02-26 17:43:38 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-02-26 17:43:49 | ERROR    | QC_Automation_Logger | Unexpected extraction error for WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg: PaddleOCR is required for image extraction but not installed.
+2026-02-26 17:43:49 | ERROR    | QC_Automation_Logger | [BATCH_20260226_174338_69F92097] Extraction Failed.
+2026-02-26 17:43:49 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg to failed/BATCH_20260226_174338_69F92097_WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg
+2026-02-26 17:48:52 | INFO     | QC_Automation_Logger | [BATCH_20260226_174852_F7CEADCF] Detected new file: WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-02-26 17:48:52 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-02-26 17:48:53 | ERROR    | QC_Automation_Logger | Unexpected extraction error for WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg: PaddleOCR is required for image extraction but not installed.
+2026-02-26 17:48:53 | ERROR    | QC_Automation_Logger | [BATCH_20260226_174852_F7CEADCF] Extraction Failed.
+2026-02-26 17:48:53 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg to failed/BATCH_20260226_174852_F7CEADCF_WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg
+2026-02-26 19:43:13 | INFO     | QC_Automation_Logger | [BATCH_20260226_194313_553AF34E] Detected new file: WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-02-26 19:43:13 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-02-26 19:43:19 | ERROR    | QC_Automation_Logger | Validation Error during extraction: OCR could only construct 0 complete rows out of the required 16 bus bars.
+2026-02-26 19:43:19 | ERROR    | QC_Automation_Logger | [BATCH_20260226_194313_553AF34E] Extraction Failed.
+2026-02-26 19:43:19 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg to failed/BATCH_20260226_194313_553AF34E_WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg
+2026-02-26 20:11:53 | INFO     | QC_Automation_Logger | [BATCH_20260226_201153_5C1D8B1B] Detected new file: WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-02-26 20:11:53 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-02-26 20:12:17 | ERROR    | QC_Automation_Logger | Validation Error during extraction: Google Cloud Vision could only extract 39 valid numeric data points, but 112 are required for the 16x7 matrix.
+2026-02-26 20:12:17 | ERROR    | QC_Automation_Logger | [BATCH_20260226_201153_5C1D8B1B] Extraction Failed.
+2026-02-26 20:12:17 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg to failed/BATCH_20260226_201153_5C1D8B1B_WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg
+2026-02-26 20:23:41 | INFO     | QC_Automation_Logger | [BATCH_20260226_202341_0ADC2505] Detected new file: WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-02-26 20:23:41 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-02-26 20:23:46 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260226_202341_0ADC2505_Report.xlsx
+2026-02-26 20:23:46 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg to processed/BATCH_20260226_202341_0ADC2505_WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg
+2026-02-26 20:23:46 | INFO     | QC_Automation_Logger | [BATCH_20260226_202341_0ADC2505] Batch sequence complete. Final Decision: REJECTED
+2026-02-26 20:29:25 | INFO     | QC_Automation_Logger | [BATCH_20260226_202925_BDD7356B] Detected new file: Screenshot 2026-02-26 202831.png | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-02-26 20:29:25 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-02-26 20:29:28 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260226_202925_BDD7356B_Report.xlsx
+2026-02-26 20:29:28 | INFO     | QC_Automation_Logger | Moved Screenshot 2026-02-26 202831.png to processed/BATCH_20260226_202925_BDD7356B_Screenshot 2026-02-26 202831.png
+2026-02-26 20:29:28 | INFO     | QC_Automation_Logger | [BATCH_20260226_202925_BDD7356B] Batch sequence complete. Final Decision: REJECTED
+2026-02-26 20:45:34 | INFO     | QC_Automation_Logger | [BATCH_20260226_204534_A65065FB] Detected new file: Screenshot 2026-02-26 202831.png | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-02-26 20:45:34 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-02-26 20:45:38 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260226_204534_A65065FB_Report.xlsx
+2026-02-26 20:45:38 | INFO     | QC_Automation_Logger | Moved Screenshot 2026-02-26 202831.png to processed/BATCH_20260226_204534_A65065FB_Screenshot 2026-02-26 202831.png
+2026-02-26 20:45:38 | INFO     | QC_Automation_Logger | [BATCH_20260226_204534_A65065FB] Batch sequence complete. Final Decision: APPROVED
+2026-02-26 20:47:00 | INFO     | QC_Automation_Logger | [BATCH_20260226_204700_9672EF6A] Detected new file: WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-02-26 20:47:00 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-02-26 20:47:02 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260226_204700_9672EF6A_Report.xlsx
+2026-02-26 20:47:02 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg1.jpeg to processed/BATCH_20260226_204700_9672EF6A_WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg1.jpeg
+2026-02-26 20:47:02 | INFO     | QC_Automation_Logger | [BATCH_20260226_204700_9672EF6A] Batch sequence complete. Final Decision: REJECTED
