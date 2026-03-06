@@ -22,9 +22,14 @@ CREDENTIALS_PATH = BASE_DIR / "google_credentials.json"
 class OCREngine:
     """Google Cloud Vision OCR engine for solder point table extraction."""
 
-    @staticmethod
-    def _get_vision_client() -> vision.ImageAnnotatorClient:
-        """Initializes the GCP Vision client using the local JSON key."""
+    _cached_client: Optional[vision.ImageAnnotatorClient] = None
+
+    @classmethod
+    def _get_vision_client(cls) -> vision.ImageAnnotatorClient:
+        """Returns a cached GCP Vision client (initialises on first call)."""
+        if cls._cached_client is not None:
+            return cls._cached_client
+
         if not CREDENTIALS_PATH.exists():
             raise ValidationError(
                 "Google Cloud credentials not found! \n"
@@ -32,9 +37,10 @@ class OCREngine:
                 f"{CREDENTIALS_PATH}\n"
                 "You can get this from the Google Cloud Console (APIs & Services -> Credentials)."
             )
-        
+
         creds = service_account.Credentials.from_service_account_file(str(CREDENTIALS_PATH))
-        return vision.ImageAnnotatorClient(credentials=creds)
+        cls._cached_client = vision.ImageAnnotatorClient(credentials=creds)
+        return cls._cached_client
 
     @staticmethod
     def extract_matrix(image_np: np.ndarray, batch_manager) -> Tuple[Optional[List[List[float]]], Optional[str]]:
@@ -52,7 +58,7 @@ class OCREngine:
         image = vision.Image(content=content)
         
         try:
-            response = client.document_text_detection(image=image)
+            response = client.document_text_detection(image=image, timeout=30)
         except Exception as e:
             raise ValidationError(f"Google Cloud Vision API request failed: {e}")
 
@@ -75,7 +81,19 @@ class OCREngine:
                 footer_y_candidates.append(y_center)
         
         table_top_y = min(header_y_candidates) if header_y_candidates else 0
-        table_bottom_y = min(footer_y_candidates) if footer_y_candidates else float('inf')
+        
+        # Use min() — the topmost footer keyword (e.g. "Maximum") marks where
+        # summary rows begin.  Everything at or below that line must be excluded
+        # so that K-Means only sees the 16 data rows, not the 3 summary rows.
+        if footer_y_candidates:
+            footer_start_y = min(footer_y_candidates)
+            # Subtract a small margin (half the estimated row height) so that
+            # numeric tokens on the same line as the footer keyword are excluded.
+            data_span = footer_start_y - table_top_y
+            row_height_est = data_span / (BUS_BARS + 1) if data_span > 0 else 0
+            table_bottom_y = footer_start_y - row_height_est * 0.5
+        else:
+            table_bottom_y = float('inf')
         
         logging.info(f"Table Y-Boundaries: Top={table_top_y}, Bottom={table_bottom_y}")
 
@@ -139,8 +157,22 @@ class OCREngine:
 
         logging.info(f"GCP Vision extracted {len(words)} tokens into {BUS_BARS}x{POINTS_PER_BAR} matrix.")
 
-        # Log simulated high confidence (GCP Vision rarely provides useful word-level confidence for document text)
-        batch_manager.set_metadata("ocr_avg_confidence", 0.99)
+        # Compute average symbol confidence from the full-text annotation (page->block->paragraph->word->symbol)
+        confidences = []
+        try:
+            for page in response.full_text_annotation.pages:
+                for block in page.blocks:
+                    for paragraph in block.paragraphs:
+                        for word in paragraph.words:
+                            for symbol in word.symbols:
+                                if symbol.confidence > 0:
+                                    confidences.append(symbol.confidence)
+        except Exception:
+            pass  # GCP may not always return confidence; fall back gracefully
+
+        avg_confidence = sum(confidences) / len(confidences) if confidences else 0.0
+        batch_manager.set_metadata("ocr_avg_confidence", round(avg_confidence, 4))
+        logging.info(f"OCR average symbol confidence: {avg_confidence:.4f} ({len(confidences)} symbols)")
 
         # Clean to floats
         clean_matrix = DataCleaner.clean_matrix(matrix)

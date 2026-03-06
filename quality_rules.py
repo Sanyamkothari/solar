@@ -25,7 +25,7 @@ class QualityEvaluator:
         Rule A: At least 75% of total points (84 points) must be > 0.8
         """
         total_greater_than_threshold = 0
-        for current_idx, row in enumerate(matrix):
+        for row in matrix:
             total_greater_than_threshold += sum(1 for val in row if val > RULE_A_THRESHOLD)
             
         passed = total_greater_than_threshold >= MIN_POINTS_RULE_A

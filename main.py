@@ -9,12 +9,14 @@ from validator import Validator, ValidationError
 from quality_rules import QualityEvaluator
 from report_generator import ReportGenerator
 from batch_manager import BatchManager
+from cross_verifier import CrossVerifier
 from logger import logger
-from config import CATEGORY_DATA_ERROR
+from config import CATEGORY_DATA_ERROR, CATEGORY_VERIFICATION_FAILED
 
-def process_file(filepath, steps_callback=None):
+def process_file(filepath, excel_ref_path=None, steps_callback=None):
     """
     Processes a single factory file drop.
+    If excel_ref_path is provided, cross-verifies image OCR data against Excel before QC rules.
     Returns a dict with step-by-step results for dashboard visibility.
     Optional steps_callback(step_name, status, detail) for live UI updates.
     """
@@ -26,6 +28,8 @@ def process_file(filepath, steps_callback=None):
         "eval_report": None,
         "decision": None,
         "report_path": None,
+        "verification_report": None,
+        "matrix_source": None,
     }
 
     def add_step(name, status, detail=""):
@@ -57,6 +61,40 @@ def process_file(filepath, steps_callback=None):
     rows = len(matrix)
     cols = len(matrix[0]) if matrix else 0
     add_step("🔄 Extraction", "✅ PASS", f"Extracted {rows}×{cols} matrix.")
+
+    # STEP 2b: Cross-Verification (Image vs Excel)
+    if excel_ref_path is not None:
+        add_step("🔀 Cross-Verification", "⏳ Running", "Comparing image data with Excel reference...")
+        excel_ref_matrix = InputHandler.extract_excel_reference(excel_ref_path)
+
+        if excel_ref_matrix is None:
+            add_step("🔀 Cross-Verification", "❌ FAIL", "Could not parse reference Excel file.")
+        else:
+            verification = CrossVerifier.verify(matrix, excel_ref_matrix)
+            result["verification_report"] = verification
+            match_pct = verification["match_percentage"]
+            mismatches = verification["mismatch_count"]
+
+            if verification["passed"]:
+                add_step("🔀 Cross-Verification", "✅ PASS",
+                         f"{match_pct}% match ({mismatches} mismatches within tolerance).")
+            else:
+                add_step("🔀 Cross-Verification", "❌ FAIL",
+                         f"Only {match_pct}% match — {mismatches} cells differ beyond tolerance.")
+                category_override = CATEGORY_VERIFICATION_FAILED
+
+            # Conditional: choose which matrix to trust for QC evaluation
+            chosen_matrix, source_label = CrossVerifier.choose_matrix(verification, matrix, excel_ref_matrix)
+            matrix = chosen_matrix
+            result["matrix"] = matrix
+            result["matrix_source"] = source_label
+            rows = len(matrix)
+            cols = len(matrix[0]) if matrix else 0
+            add_step("📋 Matrix Source", "ℹ️ INFO", source_label)
+    elif filepath.suffix.lower() in ('.xlsx', '.xls'):
+        result["matrix_source"] = "EXCEL (direct upload)"
+    else:
+        result["matrix_source"] = "IMAGE (OCR — no Excel reference provided)"
 
     # STEP 3: Data Cleaning (already done inside parser, but we confirm)
     add_step("🧹 Data Cleaning", "✅ PASS", f"All values converted to numeric floats.")
@@ -115,7 +153,13 @@ def process_file(filepath, steps_callback=None):
 
     # STEP 7: Report Generation
     add_step("📊 Report Generation", "⏳ Running", "Writing Excel report...")
-    report_path = ReportGenerator.generate_report(batch.batch_id, matrix, eval_report)
+    report_path = ReportGenerator.generate_report(
+        batch_id=batch.batch_id,
+        matrix=matrix,
+        eval_report=eval_report,
+        verification_report=result.get("verification_report"),
+        matrix_source=result.get("matrix_source"),
+    )
     result["report_path"] = str(report_path)
     add_step("📊 Report Generation", "✅ PASS", f"Saved: {report_path.name}")
 

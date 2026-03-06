@@ -1,0 +1,53 @@
+2026-03-05 17:32:13 | INFO     | QC_Automation_Logger | QC Automation System Started.
+2026-03-05 17:33:14 | INFO     | QC_Automation_Logger | QC Automation System Started.
+2026-03-05 17:33:14 | INFO     | QC_Automation_Logger | [BATCH_20260305_173314_8676D978] Detected new file: WhatsApp Image 2026-03-05 at 5.14.55 PM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-05 17:33:14 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-05 17:33:21 | ERROR    | QC_Automation_Logger | Unexpected extraction error for WhatsApp Image 2026-03-05 at 5.14.55 PM.jpeg: Could not read image from C:\Users\sanya\OneDrive\Desktop\O2\QC_Automation\input\WhatsApp Image 2026-03-05 at 5.14.55 PM.jpeg
+2026-03-05 17:33:21 | ERROR    | QC_Automation_Logger | [BATCH_20260305_173314_8676D978] Extraction Failed.
+2026-03-05 17:33:21 | ERROR    | QC_Automation_Logger | Failed to move file WhatsApp Image 2026-03-05 at 5.14.55 PM.jpeg to failed: [WinError 2] The system cannot find the file specified
+2026-03-05 17:38:03 | INFO     | QC_Automation_Logger | QC Automation System Started.
+2026-03-05 17:38:34 | INFO     | QC_Automation_Logger | [BATCH_20260305_173834_B258CF04] Detected new file: WhatsApp Image 2026-03-05 at 5.20.05 PM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-05 17:38:34 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-05 17:38:42 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260305_173834_B258CF04_Report.xlsx
+2026-03-05 17:38:42 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-05 at 5.20.05 PM.jpeg to processed/BATCH_20260305_173834_B258CF04_WhatsApp_Image_2026-03-05_at_5.20.05_PM.jpeg
+2026-03-05 17:38:42 | INFO     | QC_Automation_Logger | [BATCH_20260305_173834_B258CF04] Batch sequence complete. Final Decision: REJECTED
+2026-03-05 17:38:54 | INFO     | QC_Automation_Logger | [BATCH_20260305_173854_5FA9A241] Detected new file: WhatsApp Image 2026-03-05 at 5.20.05 PM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-05 17:38:54 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-05 17:38:59 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260305_173854_5FA9A241_Report.xlsx
+2026-03-05 17:38:59 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-05 at 5.20.05 PM.jpeg to processed/BATCH_20260305_173854_5FA9A241_WhatsApp_Image_2026-03-05_at_5.20.05_PM.jpeg
+2026-03-05 17:38:59 | INFO     | QC_Automation_Logger | [BATCH_20260305_173854_5FA9A241] Batch sequence complete. Final Decision: REJECTED
+2026-03-05 17:39:02 | INFO     | QC_Automation_Logger | [BATCH_20260305_173902_B510389A] Detected new file: WhatsApp Image 2026-03-05 at 5.11.00 PM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-05 17:39:02 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-05 17:39:05 | ERROR    | QC_Automation_Logger | Validation Error during extraction: Only 0 numeric tokens found in table area, expected ~112.
+2026-03-05 17:39:05 | ERROR    | QC_Automation_Logger | [BATCH_20260305_173902_B510389A] Extraction Failed.
+2026-03-05 17:39:05 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-05 at 5.11.00 PM.jpeg to failed/BATCH_20260305_173902_B510389A_WhatsApp_Image_2026-03-05_at_5.11.00_PM.jpeg
+2026-03-05 17:39:21 | INFO     | QC_Automation_Logger | [BATCH_20260305_173921_967D7DF5] Detected new file: WhatsApp Image 2026-03-05 at 5.14.55 PM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-05 17:39:21 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-05 17:39:24 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260305_173921_967D7DF5_Report.xlsx
+2026-03-05 17:39:24 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-05 at 5.14.55 PM.jpeg to processed/BATCH_20260305_173921_967D7DF5_WhatsApp_Image_2026-03-05_at_5.14.55_PM.jpeg
+2026-03-05 17:39:24 | INFO     | QC_Automation_Logger | [BATCH_20260305_173921_967D7DF5] Batch sequence complete. Final Decision: REJECTED
+2026-03-05 17:43:33 | INFO     | QC_Automation_Logger | [BATCH_20260305_174333_94254414] Test message | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-05 17:43:33 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_001_Report.xlsx
+2026-03-05 17:43:33 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_002_Report.xlsx
+2026-03-05 17:43:33 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_SHEETS_Report.xlsx
+2026-03-05 17:43:33 | ERROR    | QC_Automation_Logger | Unsupported file format: .pdf for test.pdf
+2026-03-05 17:43:33 | ERROR    | QC_Automation_Logger | File huge.xlsx exceeds size limit (52428801 bytes > 52428800 bytes)
+2026-03-05 17:43:33 | INFO     | QC_Automation_Logger | Moved test.xlsx to processed/BATCH_TEST_test.xlsx
+2026-03-05 17:43:33 | INFO     | QC_Automation_Logger | Moved bad.xlsx to failed/BATCH_FAIL_bad.xlsx
+2026-03-05 17:43:34 | INFO     | QC_Automation_Logger | Report generated successfully: INT_TEST_001_Report.xlsx
+2026-03-05 17:43:34 | INFO     | QC_Automation_Logger | Report generated successfully: INT_TEST_002_Report.xlsx
+2026-03-05 17:45:26 | INFO     | QC_Automation_Logger | [BATCH_20260305_174526_7B822C3A] Detected new file: Screenshot 2026-03-04 025329.png | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-05 17:45:26 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-05 17:45:28 | ERROR    | QC_Automation_Logger | Validation Error during extraction: Google Cloud Vision API request failed: 503 GOAWAY received; Error code: 0; Debug Text: session_timed_out
+2026-03-05 17:45:28 | ERROR    | QC_Automation_Logger | [BATCH_20260305_174526_7B822C3A] Extraction Failed.
+2026-03-05 17:45:28 | INFO     | QC_Automation_Logger | Moved Screenshot 2026-03-04 025329.png to failed/BATCH_20260305_174526_7B822C3A_Screenshot_2026-03-04_025329.png
+2026-03-05 17:47:28 | INFO     | QC_Automation_Logger | [BATCH_20260305_174728_86C68A6B] Detected new file: Screenshot 2026-02-26 202831.png | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-05 17:47:28 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-05 17:47:38 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260305_174728_86C68A6B_Report.xlsx
+2026-03-05 17:47:38 | INFO     | QC_Automation_Logger | Moved Screenshot 2026-02-26 202831.png to processed/BATCH_20260305_174728_86C68A6B_Screenshot_2026-02-26_202831.png
+2026-03-05 17:47:38 | INFO     | QC_Automation_Logger | [BATCH_20260305_174728_86C68A6B] Batch sequence complete. Final Decision: APPROVED
+2026-03-05 18:21:31 | INFO     | QC_Automation_Logger | [BATCH_20260305_182131_4306D243] Detected new file: Screenshot 2026-02-26 202831.png | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-05 18:21:31 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-05 18:22:00 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260305_182131_4306D243_Report.xlsx
+2026-03-05 18:22:00 | INFO     | QC_Automation_Logger | Moved Screenshot 2026-02-26 202831.png to processed/BATCH_20260305_182131_4306D243_Screenshot_2026-02-26_202831.png
+2026-03-05 18:22:00 | INFO     | QC_Automation_Logger | [BATCH_20260305_182131_4306D243] Batch sequence complete. Final Decision: APPROVED

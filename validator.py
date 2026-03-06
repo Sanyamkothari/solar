@@ -3,6 +3,7 @@ Hard Validation module for the factory QC pipeline.
 Enforces strict structural requirements on incoming cleaned matrices.
 Raises exceptions immediately on schema or constraint failures (No silent failures).
 """
+import math
 from typing import List
 from config import TOTAL_POINTS, BUS_BARS, POINTS_PER_BAR
 
@@ -36,16 +37,15 @@ class Validator:
                 )
             
             # Since data_cleaner handles casting, this is a secondary sanity type check
-            if not all(isinstance(val, float) for val in row):
+            if not all(isinstance(val, (int, float)) for val in row):
                 raise ValidationError(
                     f"Non-numeric values detected post-cleaning in row {i+1}. "
-                    "All extracted points must be numeric floats."
+                    "All extracted points must be numeric (int or float)."
                 )
 
             total_points_extracted += len(row)
-            
+
             # Check for missing values (usually represented as None or NaN)
-            import math
             if any(val is None or math.isnan(val) for val in row):
                  raise ValidationError(f"Missing (None/NaN) values detected in row {i+1}.")
 

@@ -6,6 +6,7 @@ import streamlit as st
 import pandas as pd
 import os
 import time
+import tempfile
 from pathlib import Path
 from datetime import datetime
 
@@ -18,7 +19,8 @@ if str(BASE_DIR) not in sys.path:
 from config import (
     INPUT_DIR, PROCESSED_DIR, FAILED_DIR, OUTPUT_DIR, LOGS_DIR,
     RULE_A_THRESHOLD, RULE_B_THRESHOLD, RULE_C_THRESHOLD,
-    MIN_POINTS_RULE_A, MAX_RULE_B_PER_BAR, MAX_RULE_C_TOTAL, MAX_RULE_C_PER_BAR
+    MIN_POINTS_RULE_A, MAX_RULE_B_PER_BAR, MAX_RULE_C_TOTAL, MAX_RULE_C_PER_BAR,
+    VERIFY_TOLERANCE
 )
 from input_handler import InputHandler
 from main import process_file
@@ -105,20 +107,33 @@ with c4:
 # ─── MANUAL UPLOAD & PROCESSING ───
 st.markdown("---")
 st.header("📂 Run Batch Inspection")
-uploaded_file = st.file_uploader("Drop an Image (PNG/JPG) or Excel (XLSX) file to inspect", type=['png', 'jpg', 'jpeg', 'xlsx'])
+uploaded_file = st.file_uploader("Drop an Image (PNG/JPG) or Excel (XLSX/XLS) file to inspect", type=['png', 'jpg', 'jpeg', 'xlsx', 'xls'])
+
+# Optional: user-provided Excel reference for cross-verification
+st.markdown("##### 📎 Optional: Upload Reference Excel for Cross-Verification")
+st.caption("If you upload an image above, provide the matching Excel file here to verify OCR accuracy.")
+excel_ref_file = st.file_uploader("Reference Excel (XLSX/XLS)", type=['xlsx', 'xls'], key="excel_ref")
 
 if uploaded_file is not None:
     if st.button("🚀  Start QC Pipeline", use_container_width=True, type="primary"):
-        # Save file to input dir
-        file_path = INPUT_DIR / uploaded_file.name
+        # Save file to a temporary directory so the background main.py loop
+        # doesn't race to pick it up from input/ at the same time.
+        tmp_dir = Path(tempfile.mkdtemp(prefix="qc_upload_"))
+        file_path = tmp_dir / uploaded_file.name
         with open(file_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
-        time.sleep(0.5)
+
+        # Save reference Excel if provided
+        excel_ref_path = None
+        if excel_ref_file is not None:
+            excel_ref_path = tmp_dir / f"ref_{excel_ref_file.name}"
+            with open(excel_ref_path, "wb") as f:
+                f.write(excel_ref_file.getbuffer())
 
         # ── RUN THE PIPELINE ──
         with st.spinner("Running factory QC pipeline..."):
             try:
-                result = process_file(file_path)
+                result = process_file(file_path, excel_ref_path=excel_ref_path)
             except Exception as e:
                 st.error(f"Critical pipeline failure: {e}")
                 result = None
@@ -135,12 +150,46 @@ if uploaded_file is not None:
             elif decision == "DATA_ERROR":
                 css = "decision-error"
                 icon = "⚠️"
+            elif decision == "VERIFICATION_FAILED":
+                css = "decision-error"
+                icon = "🔀"
             else:
                 css = "decision-review"
                 icon = "🔍"
 
             st.markdown(f"<div class='decision-banner {css}'>{icon}  {decision}</div>", unsafe_allow_html=True)
             st.caption(f"Batch ID: `{result.get('batch_id', 'N/A')}`")
+
+            # ── MATRIX SOURCE INFO ──
+            matrix_source = result.get("matrix_source")
+            if matrix_source:
+                st.info(f"📋 **Data Source:** {matrix_source}")
+
+            # ── CROSS-VERIFICATION RESULTS ──
+            vr = result.get("verification_report")
+            if vr:
+                st.subheader("🔀 Cross-Verification: Image vs Excel")
+                vc1, vc2, vc3 = st.columns(3)
+                with vc1:
+                    color = "metric-value-green" if vr["passed"] else "metric-value-red"
+                    st.markdown(f"<div class='metric-card'><h3>Match Rate</h3><span class='{color}'>{vr['match_percentage']}%</span></div>", unsafe_allow_html=True)
+                with vc2:
+                    st.markdown(f"<div class='metric-card'><h3>Matched Cells</h3><span class='metric-value-blue'>{vr['matched_cells']}/{vr['total_cells']}</span></div>", unsafe_allow_html=True)
+                with vc3:
+                    mismatch_color = "metric-value-green" if vr["mismatch_count"] == 0 else "metric-value-red"
+                    st.markdown(f"<div class='metric-card'><h3>Mismatches</h3><span class='{mismatch_color}'>{vr['mismatch_count']}</span></div>", unsafe_allow_html=True)
+
+                if vr["passed"]:
+                    st.success(f"✅ Verification PASSED — OCR output matches Excel within ±{vr['tolerance']} tolerance.")
+                else:
+                    st.error(f"❌ Verification FAILED — {vr['mismatch_count']} cells differ beyond ±{vr['tolerance']} tolerance. Excel data used as ground truth.")
+
+                # Show mismatch details table
+                if vr["mismatches"]:
+                    st.markdown("**Mismatch Details:**")
+                    mismatch_df = pd.DataFrame(vr["mismatches"])
+                    mismatch_df.columns = ["Bus Bar", "Point", "Image (OCR)", "Excel (Ref)", "Difference"]
+                    st.dataframe(mismatch_df, use_container_width=True, hide_index=True)
 
             # ── STEP-BY-STEP PIPELINE VIEW ──
             st.subheader("🔗 Pipeline Steps")

@@ -1,12 +1,11 @@
 """
 Logger configuration for the Manufacturing Quality Control Automation System.
-Sets up rolling file logging to trace execution steps, success/failures, and decisions.
+Sets up timed-rotating file logging to trace execution steps, success/failures, and decisions.
 """
 import logging
 import sys
-from logging.handlers import RotatingFileHandler
-from datetime import datetime
-from config import LOGS_DIR
+from logging.handlers import TimedRotatingFileHandler
+from config import LOGS_DIR, LOG_MAX_BYTES, LOG_BACKUP_COUNT
 
 def setup_logger():
     # Create logger
@@ -23,14 +22,16 @@ def setup_logger():
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 
-    # File Handler (Rolling)
-    log_file = LOGS_DIR / f"qc_run_{datetime.now().strftime('%Y%m%d')}.log"
-    file_handler = RotatingFileHandler(
+    # File Handler — rotates at midnight, keeps LOG_BACKUP_COUNT days of history
+    log_file = LOGS_DIR / "qc_run.log"
+    file_handler = TimedRotatingFileHandler(
         log_file,
-        maxBytes=10*1024*1024, # 10MB
-        backupCount=5,
+        when="midnight",
+        interval=1,
+        backupCount=LOG_BACKUP_COUNT,
         encoding="utf-8"
     )
+    file_handler.suffix = "%Y%m%d"  # rotated files: qc_run.log.20260305
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
