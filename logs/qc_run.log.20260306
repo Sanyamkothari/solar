@@ -1,0 +1,25 @@
+2026-03-06 21:58:38 | INFO     | QC_Automation_Logger | [BATCH_20260306_215838_95DD7B36] Detected new file: WhatsApp Image 2026-03-06 at 9.57.54 PM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-06 21:58:38 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-06 21:58:55 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260306_215838_95DD7B36_Report.xlsx
+2026-03-06 21:58:55 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-06 at 9.57.54 PM.jpeg to processed/BATCH_20260306_215838_95DD7B36_WhatsApp_Image_2026-03-06_at_9.57.54_PM.jpeg
+2026-03-06 21:58:55 | INFO     | QC_Automation_Logger | [BATCH_20260306_215838_95DD7B36] Batch sequence complete. Final Decision: REJECTED
+2026-03-06 22:00:42 | INFO     | QC_Automation_Logger | [BATCH_20260306_220042_A990999A] Detected new file: WhatsApp Image 2026-03-06 at 9.57.54 PM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-06 22:00:42 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-06 22:00:45 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260306_220042_A990999A_Report.xlsx
+2026-03-06 22:00:45 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-06 at 9.57.54 PM.jpeg to processed/BATCH_20260306_220042_A990999A_WhatsApp_Image_2026-03-06_at_9.57.54_PM.jpeg
+2026-03-06 22:00:45 | INFO     | QC_Automation_Logger | [BATCH_20260306_220042_A990999A] Batch sequence complete. Final Decision: REJECTED
+2026-03-06 22:01:15 | INFO     | QC_Automation_Logger | [BATCH_20260306_220115_6965F788] Detected new file: WhatsApp Image 2026-03-06 at 9.57.54 PM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-06 22:01:15 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-06 22:01:18 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260306_220115_6965F788_Report.xlsx
+2026-03-06 22:01:18 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-06 at 9.57.54 PM.jpeg to processed/BATCH_20260306_220115_6965F788_WhatsApp_Image_2026-03-06_at_9.57.54_PM.jpeg
+2026-03-06 22:01:18 | INFO     | QC_Automation_Logger | [BATCH_20260306_220115_6965F788] Batch sequence complete. Final Decision: REJECTED
+2026-03-06 22:02:21 | INFO     | QC_Automation_Logger | [BATCH_20260306_220221_3764A4C8] Detected new file: WhatsApp Image 2026-03-06 at 10.02.05 PM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-06 22:02:21 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-06 22:02:23 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260306_220221_3764A4C8_Report.xlsx
+2026-03-06 22:02:23 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-06 at 10.02.05 PM.jpeg to processed/BATCH_20260306_220221_3764A4C8_WhatsApp_Image_2026-03-06_at_10.02.05_PM.jpeg
+2026-03-06 22:02:23 | INFO     | QC_Automation_Logger | [BATCH_20260306_220221_3764A4C8] Batch sequence complete. Final Decision: APPROVED
+2026-03-06 22:46:23 | INFO     | QC_Automation_Logger | [BATCH_20260306_224623_8214C20A] Detected new file: WhatsApp Image 2026-03-06 at 10.02.05 PM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-06 22:46:23 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-06 22:46:29 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260306_224623_8214C20A_Report.xlsx
+2026-03-06 22:46:29 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-06 at 10.02.05 PM.jpeg to processed/BATCH_20260306_224623_8214C20A_WhatsApp_Image_2026-03-06_at_10.02.05_PM.jpeg
+2026-03-06 22:46:29 | INFO     | QC_Automation_Logger | [BATCH_20260306_224623_8214C20A] Batch sequence complete. Final Decision: APPROVED

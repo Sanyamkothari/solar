@@ -1,3 +1,4 @@
+
 """
 Main Orchestrator for the QC Automation System.
 Runs a continuous loop over the input directory, coordinates the batch manager, validation, and reporting.
@@ -5,13 +6,13 @@ Runs a continuous loop over the input directory, coordinates the batch manager, 
 import time
 import argparse
 from input_handler import InputHandler
-from validator import Validator, ValidationError
+from validator import Validator, ValidationError, ValidationWarning
 from quality_rules import QualityEvaluator
 from report_generator import ReportGenerator
 from batch_manager import BatchManager
 from cross_verifier import CrossVerifier
 from logger import logger
-from config import CATEGORY_DATA_ERROR, CATEGORY_VERIFICATION_FAILED
+from config import CATEGORY_DATA_ERROR, CATEGORY_VERIFICATION_FAILED, CATEGORY_MANUAL_REVIEW
 
 def process_file(filepath, excel_ref_path=None, steps_callback=None):
     """
@@ -102,9 +103,14 @@ def process_file(filepath, excel_ref_path=None, steps_callback=None):
     # STEP 4: Hard Validation
     add_step("🔍 Validation", "⏳ Running", "Checking 16×7 = 112 structure...")
     try:
-        Validator.validate_matrix(matrix)
+        validation_warning = Validator.validate_matrix(matrix)
         total = sum(len(r) for r in matrix)
-        add_step("🔍 Validation", "✅ PASS", f"Structure OK: {rows} bars × {cols} pts = {total} total.")
+        if validation_warning:
+            add_step("🔍 Validation", "⚠️ PARTIAL", f"{validation_warning} ({rows}×{cols} = {total} points)")
+            if not category_override:
+                category_override = CATEGORY_MANUAL_REVIEW
+        else:
+            add_step("🔍 Validation", "✅ PASS", f"Structure OK: {rows} bars × {cols} pts = {total} total.")
     except ValidationError as ve:
         add_step("🔍 Validation", "❌ FAIL", str(ve))
         logger.error(f"[{batch.batch_id}] Hard Validation Failed: {ve}")

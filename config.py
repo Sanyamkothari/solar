@@ -23,6 +23,10 @@ POINTS_PER_BAR = 7
 TOTAL_POINTS = BUS_BARS * POINTS_PER_BAR  # 112
 assert TOTAL_POINTS == BUS_BARS * POINTS_PER_BAR, "TOTAL_POINTS must equal BUS_BARS × POINTS_PER_BAR"
 
+# Partial matrix support — allow processing images that capture fewer bus bars
+# (e.g., cropped WhatsApp photos). Set to 0 to disable partial support.
+MIN_BUS_BARS = 5  # Minimum rows to attempt QC evaluation (below this = DATA_ERROR)
+
 # Quality Criteria Thresholds (per manufacturing QC spec)
 RULE_A_THRESHOLD = 0.8       # Minimum acceptable peel force (N)
 RULE_A_PERCENTAGE = 0.75     # At least 75% of all points must exceed RULE_A_THRESHOLD
@@ -46,7 +50,7 @@ DATA_VALUE_MAX = 10.0  # solder peel force rarely exceeds 10 N
 MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB
 
 # Image preprocessing thresholds (used by image_processor.py)
-IMG_CROP_TOP = 0.40
+IMG_CROP_TOP = 0.25
 IMG_CROP_BOTTOM = 0.95
 IMG_CROP_LEFT = 0.05
 IMG_CROP_RIGHT = 0.97

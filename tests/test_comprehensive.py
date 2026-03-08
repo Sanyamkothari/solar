@@ -11,6 +11,9 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 # Module imports
 from data_cleaner import DataCleaner
 from validator import Validator, ValidationError
@@ -131,15 +134,15 @@ class TestValidator:
 
     def test_too_few_rows(self):
         m = make_matrix()
-        m.pop()  # 15 rows
-        with pytest.raises(ValidationError, match="16 bus bars"):
-            Validator.validate_matrix(m)
+        m.pop()  # 15 rows — above MIN_BUS_BARS, returns warning
+        result = Validator.validate_matrix(m)
+        assert result is not None  # ValidationWarning
 
     def test_too_many_rows(self):
         m = make_matrix()
-        m.append([1.0] * POINTS_PER_BAR)  # 17 rows
-        with pytest.raises(ValidationError, match="16 bus bars"):
-            Validator.validate_matrix(m)
+        m.append([1.0] * POINTS_PER_BAR)  # 17 rows — above BUS_BARS, returns warning
+        result = Validator.validate_matrix(m)
+        assert result is not None  # ValidationWarning
 
     def test_too_few_cols(self):
         m = make_matrix()
@@ -172,7 +175,7 @@ class TestValidator:
             Validator.validate_matrix(m)
 
     def test_empty_matrix_fails(self):
-        with pytest.raises(ValidationError, match="16 bus bars"):
+        with pytest.raises(ValidationError):
             Validator.validate_matrix([])
 
     def test_single_row_fails(self):
@@ -195,20 +198,20 @@ class TestValidator:
 class TestRuleA:
     def test_all_above_threshold_passes(self):
         m = make_matrix(1.0)
-        passed, count = QualityEvaluator.evaluate_rule_a(m)
+        passed, count, required = QualityEvaluator.evaluate_rule_a(m)
         assert passed is True
         assert count == TOTAL_POINTS
 
     def test_all_below_threshold_fails(self):
         m = make_matrix(0.5)
-        passed, count = QualityEvaluator.evaluate_rule_a(m)
+        passed, count, required = QualityEvaluator.evaluate_rule_a(m)
         assert passed is False
         assert count == 0
 
     def test_exact_threshold_boundary_excluded(self):
         """Points exactly at 0.8 should NOT count (must be > 0.8)."""
         m = make_matrix(0.8)
-        passed, count = QualityEvaluator.evaluate_rule_a(m)
+        passed, count, required = QualityEvaluator.evaluate_rule_a(m)
         assert count == 0
         assert passed is False
 
@@ -217,7 +220,7 @@ class TestRuleA:
         for i in range(12):
             for j in range(7):
                 m[i][j] = 0.9
-        passed, count = QualityEvaluator.evaluate_rule_a(m)
+        passed, count, required = QualityEvaluator.evaluate_rule_a(m)
         assert count == 84
         assert passed is True
 
@@ -227,7 +230,7 @@ class TestRuleA:
             for j in range(7):
                 m[i][j] = 0.9
         m[0][0] = 0.5
-        passed, count = QualityEvaluator.evaluate_rule_a(m)
+        passed, count, required = QualityEvaluator.evaluate_rule_a(m)
         assert count == 83
         assert passed is False
 

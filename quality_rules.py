@@ -5,9 +5,10 @@ Determines final QC decision categories (APPROVED, REJECTED, etc.).
 """
 from typing import List, Dict, Tuple
 from config import (
-    TOTAL_POINTS,
     BUS_BARS,
+    POINTS_PER_BAR,
     RULE_A_THRESHOLD,
+    RULE_A_PERCENTAGE,
     MIN_POINTS_RULE_A,
     RULE_B_THRESHOLD,
     MAX_RULE_B_PER_BAR,
@@ -20,16 +21,21 @@ from config import (
 
 class QualityEvaluator:
     @staticmethod
-    def evaluate_rule_a(matrix: List[List[float]]) -> Tuple[bool, int]:
+    def evaluate_rule_a(matrix: List[List[float]]) -> Tuple[bool, int, int]:
         """
-        Rule A: At least 75% of total points (84 points) must be > 0.8
+        Rule A: At least 75% of total points must be > 0.8.
+        Scales proportionally for partial matrices.
+        Returns (passed, count_above_threshold, required_count).
         """
+        total_points = len(matrix) * POINTS_PER_BAR
+        required = int(total_points * RULE_A_PERCENTAGE) if len(matrix) != BUS_BARS else MIN_POINTS_RULE_A
+        
         total_greater_than_threshold = 0
         for row in matrix:
             total_greater_than_threshold += sum(1 for val in row if val > RULE_A_THRESHOLD)
             
-        passed = total_greater_than_threshold >= MIN_POINTS_RULE_A
-        return passed, total_greater_than_threshold
+        passed = total_greater_than_threshold >= required
+        return passed, total_greater_than_threshold, required
 
     @staticmethod
     def evaluate_rule_b(matrix: List[List[float]]) -> Tuple[bool, Dict[int, int]]:
@@ -75,9 +81,15 @@ class QualityEvaluator:
         Evaluates the full batch against all rules.
         Returns a detailed report.
         """
-        rule_a_pass, count_a = QualityEvaluator.evaluate_rule_a(matrix)
+        rule_a_pass, count_a, required_a = QualityEvaluator.evaluate_rule_a(matrix)
         rule_b_pass, dict_b = QualityEvaluator.evaluate_rule_b(matrix)
         rule_c_pass, total_c, dict_c = QualityEvaluator.evaluate_rule_c(matrix)
+        
+        # Scale Rule C total threshold proportionally for partial matrices
+        actual_bars = len(matrix)
+        scaled_max_c_total = MAX_RULE_C_TOTAL if actual_bars == BUS_BARS else max(1, int(MAX_RULE_C_TOTAL * actual_bars / BUS_BARS))
+        if total_c > scaled_max_c_total:
+            rule_c_pass = False
         
         overall_pass = rule_a_pass and rule_b_pass and rule_c_pass
         decision = CATEGORY_APPROVED if overall_pass else CATEGORY_REJECTED
@@ -88,7 +100,7 @@ class QualityEvaluator:
                 "rule_A": {
                     "passed": rule_a_pass,
                     "points_gt_08": count_a,
-                    "required": MIN_POINTS_RULE_A
+                    "required": required_a
                 },
                 "rule_B": {
                     "passed": rule_b_pass,

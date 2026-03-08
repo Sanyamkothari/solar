@@ -10,7 +10,7 @@ import cv2
 from typing import List, Tuple, Optional
 from google.cloud import vision
 from google.oauth2 import service_account
-from sklearn.cluster import KMeans
+from google.oauth2 import service_account
 
 from config import BUS_BARS, POINTS_PER_BAR, BASE_DIR, CATEGORY_MANUAL_REVIEW
 from data_cleaner import DataCleaner
@@ -100,62 +100,126 @@ class OCREngine:
         numeric_pattern = re.compile(r'^[\d.,OoIl]+$')
         has_digit = re.compile(r'\d')
         
-        # 2. Extract valid words strictly within the boundaries
+        # 2. Extract words with confidence strictly within the boundaries
         words = []
-        for ann in response.text_annotations[1:]: 
-            txt = ann.description.strip()
-            bounds = ann.bounding_poly.vertices
-            y_center = sum(v.y for v in bounds) / 4.0
-            x_center = sum(v.x for v in bounds) / 4.0
-            
-            if table_top_y < y_center < table_bottom_y and numeric_pattern.match(txt) and has_digit.search(txt):
-                words.append({'text': txt, 'x': x_center, 'y': y_center})
+        try:
+            for page in response.full_text_annotation.pages:
+                for block in page.blocks:
+                    for paragraph in block.paragraphs:
+                        for word in paragraph.words:
+                            txt = "".join([symbol.text for symbol in word.symbols]).strip()
+                            if not txt:
+                                continue
+                            
+                            bounds = word.bounding_box.vertices
+                            y_center = sum(v.y for v in bounds) / 4.0
+                            x_center = sum(v.x for v in bounds) / 4.0
+                            
+                            if table_top_y < y_center < table_bottom_y and numeric_pattern.match(txt) and has_digit.search(txt):
+                                # Calculate average symbol confidence for this word
+                                confidences = [s.confidence for s in word.symbols if s.confidence > 0]
+                                word_conf = sum(confidences) / len(confidences) if confidences else 1.0
+                                words.append({'text': txt, 'x': x_center, 'y': y_center, 'confidence': word_conf})
+        except Exception as e:
+            logging.error(f"Error parsing full_text_annotation: {e}")
+            raise ValidationError("Failed to parse word confidence from OCR response.")
 
         if len(words) < (BUS_BARS * POINTS_PER_BAR // 2):
             raise ValidationError(f"Only {len(words)} numeric tokens found in table area, expected ~112.")
 
-        # 3. Use K-Means to cluster exactly 16 rows based on Y-coordinates
-        y_coords = np.array([w['y'] for w in words]).reshape(-1, 1)
+        # 3. Adaptive Line Forming Algorithm
+        # Sort all words top-to-bottom
+        words.sort(key=lambda w: w['y'])
+
+        # Compute adaptive Y-threshold from the actual gaps between consecutive words
+        y_values = [w['y'] for w in words]
+        gaps = [y_values[i+1] - y_values[i] for i in range(len(y_values) - 1) if y_values[i+1] - y_values[i] > 0]
+        if gaps:
+            gaps_sorted = sorted(gaps)
+            median_gap = gaps_sorted[len(gaps_sorted) // 2]
+            # Use 60% of the median gap as the merge threshold — tight enough
+            # to avoid merging distinct rows while tolerating slight Y-jitter
+            adaptive_threshold = max(median_gap * 0.6, 5)
+        else:
+            adaptive_threshold = 15  # safe fallback
+        logging.info(f"Adaptive line threshold: {adaptive_threshold:.1f}px (median gap: {median_gap if gaps else 'N/A'})")
+
+        lines = []
+        current_line = []
         
-        try:
-            kmeans = KMeans(n_clusters=BUS_BARS, random_state=42, n_init=10).fit(y_coords)
-        except ValueError as e:
-            raise ValidationError(f"K-Means clustering failed: {e}")
+        for w in words:
+            if not current_line:
+                current_line.append(w)
+            else:
+                avg_y = sum(item['y'] for item in current_line) / len(current_line)
+                if abs(w['y'] - avg_y) < adaptive_threshold:
+                    current_line.append(w)
+                else:
+                    lines.append(current_line)
+                    current_line = [w]
+        
+        if current_line:
+            lines.append(current_line)
 
-        centers = kmeans.cluster_centers_.flatten()
-        labels = kmeans.labels_
+        logging.info(f"Initial line grouping: {len(lines)} lines (items per line: {[len(l) for l in lines]})")
 
-        clusters = {i: [] for i in range(BUS_BARS)}
-        for i, w in enumerate(words):
-            clusters[labels[i]].append(w)
+        # 3b. Split oversized lines — if a line has significantly more items than
+        #     expected per row, it is likely two or more rows merged together.
+        split_lines = []
+        for line in lines:
+            if len(line) >= POINTS_PER_BAR * 1.5:
+                # Sub-sort by Y within the merged line and split using K-Means
+                sub_y = np.array([w['y'] for w in line]).reshape(-1, 1)
+                n_sub_rows = max(2, round(len(line) / POINTS_PER_BAR))
+                from sklearn.cluster import KMeans
+                km = KMeans(n_clusters=n_sub_rows, n_init=10, random_state=0).fit(sub_y)
+                labels = km.labels_
+                # Build sub-lines ordered by cluster centroid Y
+                cluster_order = np.argsort(km.cluster_centers_.flatten())
+                for cid in cluster_order:
+                    sub_line = [line[i] for i in range(len(line)) if labels[i] == cid]
+                    if sub_line:
+                        split_lines.append(sub_line)
+                logging.info(f"Split oversized line ({len(line)} items) into {n_sub_rows} sub-rows.")
+            else:
+                split_lines.append(line)
+        lines = split_lines
 
-        sorted_cluster_ids = np.argsort(centers)
+        # 4. Extract data rows
+        # A valid data row usually has ~7+ numeric items. We filter out header/noise lines.
+        valid_data_lines = [line for line in lines if len(line) >= POINTS_PER_BAR - 1]
+        
+        if len(valid_data_lines) < BUS_BARS:
+             logging.warning(f"Found {len(valid_data_lines)} valid rows, expected {BUS_BARS}.")
+             # Include shorter lines as well if they have at least 4 items
+             valid_data_lines = [line for line in lines if len(line) >= 4]
+             if len(valid_data_lines) < BUS_BARS:
+                 logging.warning(f"Even with relaxed filter: {len(valid_data_lines)} rows. Using all available.")
+
+        # Sort the rows top-to-bottom
+        valid_data_lines.sort(key=lambda line: sum(w['y'] for w in line) / len(line))
+        
+        # Cap at BUS_BARS if we found more
+        if len(valid_data_lines) > BUS_BARS:
+            valid_data_lines = valid_data_lines[:BUS_BARS]
 
         matrix = []
-        for cid in sorted_cluster_ids:
-            cluster = clusters[cid]
-            cluster.sort(key=lambda w: w['x'])
+        for line in valid_data_lines:
+            line.sort(key=lambda w: w['x']) # Sort horizontally
             
-            row_vals = [w['text'] for w in cluster]
+            row_items = [{'val': w['text'], 'confidence': w['confidence']} for w in line]
             
-            # 4. Extract columns intelligently
             # The grid contains 7 data points. The 8th column is "max avg force" (which we ignore).
             # Numeric IDs on the left (e.g., '1028', '1') are noise. 
-            # Because the data + max avg are strictly the right-most columns, we take the last 8 items, 
-            # and then take the first 7 of those 8.
-            
-            if len(row_vals) >= POINTS_PER_BAR + 1:
-                # 8 or more values: Take the last 8, then grab the first 7 (dropping max avg force)
-                data_cols = row_vals[-(POINTS_PER_BAR + 1):]
+            if len(row_items) >= POINTS_PER_BAR + 1:
+                # Take the last 8 items, then grab the first 7
+                data_cols = row_items[-(POINTS_PER_BAR + 1):]
                 matrix.append(data_cols[:POINTS_PER_BAR])
-            elif len(row_vals) == POINTS_PER_BAR:
-                # Exactly 7 values. Assume missing max avg force.
-                matrix.append(row_vals)
+            elif len(row_items) == POINTS_PER_BAR:
+                matrix.append(row_items)
             else:
-                padding = ["0.0"] * (POINTS_PER_BAR - len(row_vals))
-                matrix.append(row_vals + padding)
-
-        logging.info(f"GCP Vision extracted {len(words)} tokens into {BUS_BARS}x{POINTS_PER_BAR} matrix.")
+                padding = [{'val': "0.0", 'confidence': 0.0}] * (POINTS_PER_BAR - len(row_items))
+                matrix.append(row_items + padding)
 
         # Compute average symbol confidence from the full-text annotation (page->block->paragraph->word->symbol)
         confidences = []
