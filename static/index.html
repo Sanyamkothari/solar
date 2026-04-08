@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factory QC Dashboard — Solar QC</title>
+    <meta name="description" content="Manufacturing QC real-time solder point quality control pipeline monitor">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<div class="layout">
+
+    <!-- ───── Sidebar ───── -->
+    <aside class="sidebar">
+        <div class="brand">
+            <i class="ph ph-factory"></i>
+            <span>Solar QC</span>
+        </div>
+
+        <div class="nav-section-label">Main</div>
+        <nav class="nav-menu">
+            <a href="#" class="nav-item active" data-view="dashboard" id="nav-dashboard">
+                <i class="ph ph-squares-four"></i> Dashboard
+            </a>
+            <a href="#" class="nav-item" data-view="processed" id="nav-processed">
+                <i class="ph ph-folder-open"></i> Processed
+            </a>
+            <a href="#" class="nav-item" data-view="failed" id="nav-failed">
+                <i class="ph ph-warning-circle"></i> Failed
+            </a>
+            <a href="#" class="nav-item" data-view="reports" id="nav-reports">
+                <i class="ph ph-file-text"></i> Reports
+            </a>
+        </nav>
+
+        <div class="nav-section-label">System</div>
+        <div class="sidebar-bottom">
+            <a href="#" class="nav-item" data-view="config" id="nav-config">
+                <i class="ph ph-gear-six"></i> Configuration
+            </a>
+            <a href="#" class="nav-item" data-view="about" id="nav-about">
+                <i class="ph ph-info"></i> About
+            </a>
+        </div>
+    </aside>
+
+    <!-- ───── Main Content ───── -->
+    <main class="main-content">
+
+        <!-- ══════════════════════════════════════════════ -->
+        <!--               VIEW: DASHBOARD                 -->
+        <!-- ══════════════════════════════════════════════ -->
+        <section class="view active" id="view-dashboard">
+            <header class="topbar">
+                <div class="page-title">
+                    <h1>Dashboard</h1>
+                    <p>Real-time solder point quality control pipeline monitor</p>
+                </div>
+                <button class="btn-refresh" onclick="refreshAll()" title="Refresh">
+                    <i class="ph ph-arrows-clockwise"></i>
+                </button>
+            </header>
+
+            <!-- Metric Cards -->
+            <div class="metrics-grid">
+                <div class="metric-card" data-view-link="processed">
+                    <div class="metric-header">
+                        <div class="metric-icon-wrap"><i class="ph ph-check-circle"></i></div>
+                        <h3>Processed</h3>
+                        <h2 id="metric-processed">0</h2>
+                    </div>
+                    <div class="metric-footer"><span>QC pipeline completions</span> <span class="view-link">View →</span></div>
+                </div>
+                <div class="metric-card" data-view-link="failed">
+                    <div class="metric-header">
+                        <div class="metric-icon-wrap"><i class="ph ph-x-circle"></i></div>
+                        <h3>Failed</h3>
+                        <h2 id="metric-failed">0</h2>
+                    </div>
+                    <div class="metric-footer"><span>Inspection failures</span> <span class="view-link">View →</span></div>
+                </div>
+                <div class="metric-card" data-view-link="reports">
+                    <div class="metric-header">
+                        <div class="metric-icon-wrap"><i class="ph ph-chart-bar"></i></div>
+                        <h3>Reports</h3>
+                        <h2 id="metric-reports">0</h2>
+                    </div>
+                    <div class="metric-footer"><span>Generated reports</span> <span class="view-link">View →</span></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon-wrap"><i class="ph ph-clock-counter-clockwise"></i></div>
+                        <h3>Pending</h3>
+                        <h2 id="metric-pending">0</h2>
+                    </div>
+                    <div class="metric-footer"><span>Awaiting inspection</span></div>
+                </div>
+            </div>
+
+            <!-- Upload + Results -->
+            <div class="split-layout">
+                <div class="panel upload-panel">
+                    <h2>Run Batch Inspection</h2>
+                    <p class="subtitle">Drop an Image (PNG/JPG) or Excel (XLSX/XLS) file to inspect</p>
+                    <form id="upload-form">
+                        <div class="file-drop-area" id="main-drop-area">
+                            <i class="ph ph-upload-simple"></i>
+                            <span>Drag &amp; Drop or <label for="main-file" class="file-label">Browse Files</label></span>
+                            <input type="file" id="main-file" accept=".png,.jpg,.jpeg,.xlsx,.xls" required hidden>
+                            <div id="main-file-name" class="file-name-display"></div>
+                        </div>
+                        <div class="file-drop-area secondary" id="ref-drop-area">
+                            <i class="ph ph-paperclip"></i>
+                            <span>Optional: Reference Excel for Cross-Verification</span>
+                            <input type="file" id="ref-file" accept=".xlsx,.xls" hidden>
+                            <div id="ref-file-name" class="file-name-display"></div>
+                        </div>
+                        <button type="submit" class="btn-primary" id="submit-btn" disabled>
+                            <span>Start QC Pipeline</span>
+                            <i class="ph ph-arrow-right"></i>
+                        </button>
+                    </form>
+                    <div class="logs-panel">
+                        <h3><i class="ph ph-terminal-window"></i> System Logs</h3>
+                        <pre id="system-logs">Loading logs...</pre>
+                    </div>
+                </div>
+
+                <div class="panel results-panel hidden" id="results-panel">
+                    <div class="loader-container hidden" id="loader">
+                        <div class="spinner"></div>
+                        <p>Analyzing manufacturing point data...</p>
+                    </div>
+                    <div id="results-content" class="hidden fade-in">
+                        <div id="decision-banner" class="decision-banner decision-APPROVED">
+                            <i class="ph ph-check-circle"></i>
+                            <span id="decision-text">APPROVED</span>
+                        </div>
+                        <div class="matrix-source-pill" id="matrix-source">Data Source: N/A</div>
+                        <div id="verification-section" class="hidden">
+                            <h3>Cross-Verification: Image vs Excel</h3>
+                            <div class="verification-grid">
+                                <div class="v-card"><span class="v-label">Match Rate</span><span class="v-val" id="v-match">—</span></div>
+                                <div class="v-card"><span class="v-label">Matched Cells</span><span class="v-val" id="v-cells">—</span></div>
+                                <div class="v-card"><span class="v-label">Mismatches</span><span class="v-val" id="v-mismatch">—</span></div>
+                            </div>
+                        </div>
+                        <h3>Pipeline Steps</h3>
+                        <div class="steps-container" id="steps-container"></div>
+                        <h3>Extracted Data Matrix</h3>
+                        <div class="table-container">
+                            <table id="matrix-table" class="matrix-table"></table>
+                        </div>
+                        <div id="rule-summary-section">
+                            <h3>Rule Summary</h3>
+                            <table class="rule-table" id="rule-table">
+                                <tr><th>Rule</th><th>Passed</th><th>Detail</th></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════════ -->
+        <!--              VIEW: PROCESSED                  -->
+        <!-- ══════════════════════════════════════════════ -->
+        <section class="view" id="view-processed">
+            <header class="topbar">
+                <div class="page-title">
+                    <h1>Processed Files</h1>
+                    <p>Files that passed through the QC pipeline successfully</p>
+                </div>
+                <button class="btn-refresh" onclick="loadProcessed()" title="Refresh">
+                    <i class="ph ph-arrows-clockwise"></i>
+                </button>
+            </header>
+            <div class="panel">
+                <div class="file-list-header">
+                    <span class="fh-name">File Name</span>
+                    <span class="fh-size">Size</span>
+                    <span class="fh-date">Date</span>
+                </div>
+                <div id="processed-list" class="file-list">
+                    <div class="empty-state"><i class="ph ph-folder-open"></i><p>No processed files yet</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════════ -->
+        <!--               VIEW: FAILED                    -->
+        <!-- ══════════════════════════════════════════════ -->
+        <section class="view" id="view-failed">
+            <header class="topbar">
+                <div class="page-title">
+                    <h1>Failed Inspections</h1>
+                    <p>Files that failed quality control checks</p>
+                </div>
+                <button class="btn-refresh" onclick="loadFailed()" title="Refresh">
+                    <i class="ph ph-arrows-clockwise"></i>
+                </button>
+            </header>
+            <div class="panel">
+                <div class="file-list-header">
+                    <span class="fh-name">File Name</span>
+                    <span class="fh-size">Size</span>
+                    <span class="fh-date">Date</span>
+                </div>
+                <div id="failed-list" class="file-list">
+                    <div class="empty-state"><i class="ph ph-warning-circle"></i><p>No failed files</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════════ -->
+        <!--               VIEW: REPORTS                   -->
+        <!-- ══════════════════════════════════════════════ -->
+        <section class="view" id="view-reports">
+            <header class="topbar">
+                <div class="page-title">
+                    <h1>Reports</h1>
+                    <p>Generated Excel inspection reports available for download</p>
+                </div>
+                <button class="btn-refresh" onclick="loadReports()" title="Refresh">
+                    <i class="ph ph-arrows-clockwise"></i>
+                </button>
+            </header>
+            <div class="panel">
+                <div class="file-list-header">
+                    <span class="fh-name">Report Name</span>
+                    <span class="fh-size">Size</span>
+                    <span class="fh-date">Date</span>
+                    <span class="fh-action">Action</span>
+                </div>
+                <div id="reports-list" class="file-list">
+                    <div class="empty-state"><i class="ph ph-file-text"></i><p>No reports generated yet</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════════ -->
+        <!--             VIEW: CONFIGURATION               -->
+        <!-- ══════════════════════════════════════════════ -->
+        <section class="view" id="view-config">
+            <header class="topbar">
+                <div class="page-title">
+                    <h1>Configuration</h1>
+                    <p>Current system thresholds and processing parameters</p>
+                </div>
+            </header>
+            <div class="config-grid" id="config-container">
+                <div class="panel config-loading"><div class="spinner"></div><p>Loading configuration...</p></div>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════════ -->
+        <!--               VIEW: ABOUT                     -->
+        <!-- ══════════════════════════════════════════════ -->
+        <section class="view" id="view-about">
+            <header class="topbar">
+                <div class="page-title">
+                    <h1>About</h1>
+                    <p>Manufacturing Quality Control Automation System</p>
+                </div>
+            </header>
+            <div class="panel about-panel">
+                <div class="about-header">
+                    <i class="ph ph-factory"></i>
+                    <h2>Solar QC Dashboard</h2>
+                </div>
+                <p class="about-desc">
+                    An automated quality control pipeline for manufacturing solder point inspection.
+                    The system uses OCR and image processing to extract measurement data from factory test equipment,
+                    applies configurable QC rules, and generates detailed inspection reports.
+                </p>
+                <div class="about-features">
+                    <div class="about-feature">
+                        <i class="ph ph-camera"></i>
+                        <h4>Image Processing</h4>
+                        <p>OpenCV-based preprocessing with deskewing, perspective correction, and CLAHE enhancement</p>
+                    </div>
+                    <div class="about-feature">
+                        <i class="ph ph-text-aa"></i>
+                        <h4>OCR Engine</h4>
+                        <p>Google Cloud Vision OCR with confidence scoring and multi-pass extraction</p>
+                    </div>
+                    <div class="about-feature">
+                        <i class="ph ph-check-square"></i>
+                        <h4>Rule-Based QC</h4>
+                        <p>Three-tier quality criteria evaluation (Rule A, B, C) per manufacturing specification</p>
+                    </div>
+                    <div class="about-feature">
+                        <i class="ph ph-git-diff"></i>
+                        <h4>Cross-Verification</h4>
+                        <p>Image vs Excel source comparison to validate OCR accuracy within configurable tolerance</p>
+                    </div>
+                </div>
+                <div class="about-footer">
+                    <p>Built with FastAPI · Python · Vanilla JS</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+<script src="/static/app.js"></script>
+</body>
+</html>
