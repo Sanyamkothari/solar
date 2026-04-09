@@ -7,28 +7,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function switchView(viewName) {
         views.forEach(v => v.classList.remove('active'));
         navItems.forEach(n => n.classList.remove('active'));
-
         const targetView = document.getElementById('view-' + viewName);
         const targetNav = document.getElementById('nav-' + viewName);
         if (targetView) targetView.classList.add('active');
         if (targetNav) targetNav.classList.add('active');
 
-        // Load data for the view
         if (viewName === 'dashboard') { fetchMetrics(); fetchLogs(); }
         else if (viewName === 'processed') loadProcessed();
-        else if (viewName === 'failed') loadFailed();
-        else if (viewName === 'reports') loadReports();
+        else if (viewName === 'reports') { showReportList(); loadReports(); }
         else if (viewName === 'config') loadConfig();
     }
 
     navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchView(item.dataset.view);
-        });
+        item.addEventListener('click', (e) => { e.preventDefault(); switchView(item.dataset.view); });
     });
 
-    // Make metric cards clickable
     document.querySelectorAll('.metric-card[data-view-link]').forEach(card => {
         card.style.cursor = 'pointer';
         card.addEventListener('click', () => switchView(card.dataset.viewLink));
@@ -39,26 +32,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const dropArea = document.getElementById(areaId);
         const input = document.getElementById(inputId);
         const textDisplay = document.getElementById(textId);
-
         dropArea.addEventListener('click', () => input.click());
         dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.classList.add('dragover'); });
         dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
         dropArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropArea.classList.remove('dragover');
-            if (e.dataTransfer.files.length) {
-                input.files = e.dataTransfer.files;
-                input.dispatchEvent(new Event('change'));
-            }
+            e.preventDefault(); dropArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length) { input.files = e.dataTransfer.files; input.dispatchEvent(new Event('change')); }
         });
         input.addEventListener('change', () => {
-            if (input.files.length > 0) {
-                textDisplay.textContent = '📄 ' + input.files[0].name;
-                checkSubmitStatus();
-            }
+            if (input.files.length > 0) { textDisplay.textContent = '📄 ' + input.files[0].name; checkSubmitStatus(); }
         });
     }
-
     setupDropArea('main-drop-area', 'main-file', 'main-file-name');
     setupDropArea('ref-drop-area', 'ref-file', 'ref-file-name');
 
@@ -83,16 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/api/upload', { method: 'POST', body: formData });
             const data = await response.json();
-            if (data.success) {
-                renderResults(data.data);
-                fetchMetrics();
-                fetchLogs();
-            } else {
-                showToast('Pipeline failed: ' + data.error, 'error');
-            }
-        } catch (error) {
-            showToast('Request failed: ' + error, 'error');
-        } finally {
+            if (data.success) { renderResults(data.data); fetchMetrics(); fetchLogs(); }
+            else showToast('Pipeline failed: ' + data.error, 'error');
+        } catch (error) { showToast('Request failed: ' + error, 'error'); }
+        finally {
             document.getElementById('loader').classList.add('hidden');
             document.getElementById('results-content').classList.remove('hidden');
             submitBtn.disabled = false;
@@ -107,24 +85,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch('/api/metrics');
             const data = await res.json();
             animateCount('metric-processed', data.processed);
-            animateCount('metric-failed', data.failed);
             animateCount('metric-reports', data.reports);
             animateCount('metric-pending', data.pending);
         } catch (e) { console.error(e); }
     }
-
     function animateCount(id, target) {
         const el = document.getElementById(id);
+        if (!el) return;
         const current = parseInt(el.textContent) || 0;
         if (current === target) return;
         const step = target > current ? 1 : -1;
         const delay = Math.max(20, 300 / Math.abs(target - current));
         let val = current;
-        const timer = setInterval(() => {
-            val += step;
-            el.textContent = val;
-            if (val === target) clearInterval(timer);
-        }, delay);
+        const timer = setInterval(() => { val += step; el.textContent = val; if (val === target) clearInterval(timer); }, delay);
     }
 
     // ─── Logs ───
@@ -136,8 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { console.error(e); }
     }
 
-    // ─── File Listing Helpers ───
-    function renderFileList(containerId, files, showDownload = false) {
+    // ─── File Listing ───
+    function renderFileList(containerId, files, opts = {}) {
         const container = document.getElementById(containerId);
         if (!files || files.length === 0) {
             container.innerHTML = '<div class="empty-state"><i class="ph ph-folder-dashed"></i><p>No files found</p></div>';
@@ -149,122 +122,341 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="fr-name">${f.name}</span>
                 <span class="fr-size">${f.size_display}</span>
                 <span class="fr-date">${f.modified}</span>
-                ${showDownload ? `<a href="/api/reports/download/${encodeURIComponent(f.name)}" class="btn-download" title="Download"><i class="ph ph-download-simple"></i></a>` : ''}
+                ${opts.showActions ? `
+                    <span class="fr-actions">
+                        <button class="btn-icon btn-view-report" data-filename="${f.name}" title="View Graphs"><i class="ph ph-chart-line-up"></i></button>
+                        <a href="/api/reports/download/${encodeURIComponent(f.name)}" class="btn-icon" title="Download"><i class="ph ph-download-simple"></i></a>
+                    </span>` : ''}
             </div>
         `).join('');
-    }
 
+        if (opts.showActions) {
+            container.querySelectorAll('.btn-view-report').forEach(btn => {
+                btn.addEventListener('click', () => openReportDetail(btn.dataset.filename));
+            });
+        }
+    }
     function getFileIcon(ext) {
         if (['.xlsx', '.xls'].includes(ext)) return 'xls';
         if (['.png', '.jpg', '.jpeg'].includes(ext)) return 'image';
-        if (ext === '.pdf') return 'pdf';
         return 'text';
     }
 
     // ─── Load Pages ───
     window.loadProcessed = async function() {
-        const container = document.getElementById('processed-list');
-        container.innerHTML = '<div class="loading-row"><div class="spinner-sm"></div> Loading...</div>';
-        try {
-            const res = await fetch('/api/processed');
-            const data = await res.json();
-            renderFileList('processed-list', data.files);
-        } catch (e) { container.innerHTML = '<div class="empty-state"><p>Failed to load files</p></div>'; }
-    };
-
-    window.loadFailed = async function() {
-        const container = document.getElementById('failed-list');
-        container.innerHTML = '<div class="loading-row"><div class="spinner-sm"></div> Loading...</div>';
-        try {
-            const res = await fetch('/api/failed');
-            const data = await res.json();
-            renderFileList('failed-list', data.files);
-        } catch (e) { container.innerHTML = '<div class="empty-state"><p>Failed to load files</p></div>'; }
+        const c = document.getElementById('processed-list');
+        c.innerHTML = '<div class="loading-row"><div class="spinner-sm"></div> Loading...</div>';
+        try { const r = await fetch('/api/processed'); const d = await r.json(); renderFileList('processed-list', d.files); }
+        catch (e) { c.innerHTML = '<div class="empty-state"><p>Failed to load</p></div>'; }
     };
 
     window.loadReports = async function() {
-        const container = document.getElementById('reports-list');
-        container.innerHTML = '<div class="loading-row"><div class="spinner-sm"></div> Loading...</div>';
-        try {
-            const res = await fetch('/api/reports');
-            const data = await res.json();
-            renderFileList('reports-list', data.files, true);
-        } catch (e) { container.innerHTML = '<div class="empty-state"><p>Failed to load reports</p></div>'; }
+        const c = document.getElementById('reports-list');
+        c.innerHTML = '<div class="loading-row"><div class="spinner-sm"></div> Loading...</div>';
+        try { const r = await fetch('/api/reports'); const d = await r.json(); renderFileList('reports-list', d.files, { showActions: true }); }
+        catch (e) { c.innerHTML = '<div class="empty-state"><p>Failed to load</p></div>'; }
     };
+
+    // ═══════════════════════════════════════════════════════════
+    //                   REPORT DETAIL + GRAPHS
+    // ═══════════════════════════════════════════════════════════
+    let activeCharts = [];
+
+    function showReportList() {
+        document.getElementById('reports-list-panel').classList.remove('hidden');
+        document.getElementById('report-detail-panel').classList.add('hidden');
+    }
+
+    document.getElementById('btn-back-reports').addEventListener('click', () => {
+        showReportList();
+        destroyCharts();
+    });
+
+    async function openReportDetail(filename) {
+        document.getElementById('reports-list-panel').classList.add('hidden');
+        const panel = document.getElementById('report-detail-panel');
+        panel.classList.remove('hidden');
+        panel.innerHTML = '<div class="loading-row" style="min-height:300px"><div class="spinner"></div> Loading report data...</div>';
+
+        try {
+            const res = await fetch(`/api/reports/detail/${encodeURIComponent(filename)}`);
+            const data = await res.json();
+            if (data.error) { panel.innerHTML = `<div class="empty-state"><p>${data.error}</p></div>`; return; }
+            renderReportDetail(filename, data);
+        } catch (e) { panel.innerHTML = `<div class="empty-state"><p>Failed to load report</p></div>`; }
+    }
+
+    function renderReportDetail(filename, data) {
+        const panel = document.getElementById('report-detail-panel');
+        const decisionClass = data.decision === 'APPROVED' ? 'pass' : data.decision === 'REJECTED' ? 'fail' : 'warn';
+
+        panel.innerHTML = `
+            <div class="report-detail-header">
+                <button class="btn-back" id="btn-back-reports-inner"><i class="ph ph-arrow-left"></i> Back to Reports</button>
+                <div>
+                    <h2>${data.batch_id || filename}</h2>
+                    <span class="decision-pill decision-pill-${decisionClass}">${data.decision}</span>
+                </div>
+                <div class="report-detail-actions">
+                    <button class="btn-secondary" id="btn-dl-charts-inner"><i class="ph ph-image"></i> Download Charts</button>
+                    <a href="/api/reports/download/${encodeURIComponent(filename)}" class="btn-secondary"><i class="ph ph-file-xls"></i> Download Excel</a>
+                </div>
+            </div>
+            <div class="report-stats-row">
+                <div class="stat-card"><span class="stat-label">Total Points</span><span class="stat-val">${data.stats.total_points}</span></div>
+                <div class="stat-card"><span class="stat-label">Mean</span><span class="stat-val">${data.stats.mean}</span></div>
+                <div class="stat-card"><span class="stat-label">Min</span><span class="stat-val">${data.stats.min}</span></div>
+                <div class="stat-card"><span class="stat-label">Max</span><span class="stat-val">${data.stats.max}</span></div>
+            </div>
+            <div class="charts-grid">
+                <div class="chart-card"><h3>Average Solder Force per Bus Bar</h3><canvas id="chart-bar-avg"></canvas></div>
+                <div class="chart-card"><h3>Value Distribution (Quality Zones)</h3><canvas id="chart-distribution"></canvas></div>
+                <div class="chart-card"><h3>Average Force per Point Position</h3><canvas id="chart-point-avg"></canvas></div>
+                <div class="chart-card"><h3>Heatmap — All Solder Points</h3><div class="heatmap-container" id="heatmap-container"></div></div>
+            </div>
+        `;
+
+        document.getElementById('btn-back-reports-inner').addEventListener('click', () => { showReportList(); destroyCharts(); });
+        document.getElementById('btn-dl-charts-inner').addEventListener('click', () => downloadAllCharts(data.batch_id || filename));
+
+        destroyCharts();
+        createBarAvgChart(data);
+        createDistributionChart(data);
+        createPointAvgChart(data);
+        createHeatmap(data);
+    }
+
+    function destroyCharts() { activeCharts.forEach(c => c.destroy()); activeCharts = []; }
+
+    const chartFont = { family: "'Inter', sans-serif" };
+    const chartColors = {
+        green: 'rgba(40, 167, 69, 0.8)',
+        red: 'rgba(220, 53, 69, 0.8)',
+        amber: 'rgba(255, 193, 7, 0.8)',
+        blue: 'rgba(0, 123, 255, 0.8)',
+        purple: 'rgba(108, 92, 231, 0.8)',
+    };
+
+    function createBarAvgChart(data) {
+        const ctx = document.getElementById('chart-bar-avg');
+        if (!ctx) return;
+        const colors = data.bar_averages.map(v => v > 0.8 ? chartColors.green : v > 0.35 ? chartColors.amber : chartColors.red);
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.bar_labels,
+                datasets: [{ label: 'Avg Force (N)', data: data.bar_averages.map(v => +v.toFixed(4)), backgroundColor: colors, borderRadius: 6, barPercentage: 0.6 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y + ' N' } } },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Force (N)', font: chartFont }, grid: { color: '#f0f2f5' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+        activeCharts.push(chart);
+    }
+
+    function createDistributionChart(data) {
+        const ctx = document.getElementById('chart-distribution');
+        if (!ctx) return;
+        const d = data.distribution;
+        const chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['≤0.1 (Fail C)', '0.1–0.35 (Fail B)', '0.35–0.8 (Mid)', '>0.8 (Pass A)'],
+                datasets: [{ data: [d['<0.1'], d['0.1-0.35'], d['0.35-0.8'], d['>0.8']],
+                    backgroundColor: [chartColors.red, chartColors.amber, chartColors.blue, chartColors.green], borderWidth: 2, borderColor: '#fff' }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { font: chartFont, padding: 16 } } },
+                cutout: '55%'
+            }
+        });
+        activeCharts.push(chart);
+    }
+
+    function createPointAvgChart(data) {
+        const ctx = document.getElementById('chart-point-avg');
+        if (!ctx) return;
+        const labels = data.point_averages.map((_, i) => `P${i + 1}`);
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Avg Force (N)', data: data.point_averages.map(v => +v.toFixed(4)),
+                    borderColor: chartColors.purple, backgroundColor: 'rgba(108, 92, 231, 0.1)',
+                    fill: true, tension: 0.4, pointRadius: 5, pointBackgroundColor: chartColors.purple, borderWidth: 2.5
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Force (N)', font: chartFont }, grid: { color: '#f0f2f5' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+        activeCharts.push(chart);
+    }
+
+    function createHeatmap(data) {
+        const container = document.getElementById('heatmap-container');
+        if (!container || !data.matrix || data.matrix.length === 0) return;
+
+        const allVals = data.matrix.flat().filter(v => v >= 0);
+        const maxVal = Math.max(...allVals, 1);
+
+        let html = '<table class="heatmap-table"><thead><tr><th></th>';
+        for (let i = 0; i < data.matrix[0].length; i++) html += `<th>P${i + 1}</th>`;
+        html += '</tr></thead><tbody>';
+
+        data.matrix.forEach((row, rIdx) => {
+            html += `<tr><td class="hm-label">${data.bar_labels[rIdx] || 'Bar ' + (rIdx + 1)}</td>`;
+            row.forEach(val => {
+                const pct = Math.min(val / maxVal, 1);
+                let bg, color;
+                if (val <= 0.1) { bg = 'rgba(220,53,69,0.75)'; color = '#fff'; }
+                else if (val <= 0.35) { bg = `rgba(255,193,7,${0.4 + pct * 0.4})`; color = '#333'; }
+                else if (val > 0.8) { bg = `rgba(40,167,69,${0.4 + pct * 0.5})`; color = '#fff'; }
+                else { bg = `rgba(0,123,255,${0.15 + pct * 0.35})`; color = '#333'; }
+                html += `<td style="background:${bg};color:${color}" title="${val.toFixed(3)} N">${val.toFixed(2)}</td>`;
+            });
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    function downloadAllCharts(title) {
+        const canvases = document.querySelectorAll('.charts-grid canvas');
+        canvases.forEach((c, i) => {
+            const link = document.createElement('a');
+            link.download = `${title}_chart_${i + 1}.png`;
+            link.href = c.toDataURL('image/png');
+            link.click();
+        });
+        showToast(`${canvases.length} charts downloaded`, 'success');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //                  EDITABLE CONFIGURATION
+    // ═══════════════════════════════════════════════════════════
+    let originalConfig = null;
+    const saveBtn = document.getElementById('btn-save-config');
 
     async function loadConfig() {
         const container = document.getElementById('config-container');
         container.innerHTML = '<div class="panel config-loading"><div class="spinner-sm"></div> Loading configuration...</div>';
         try {
             const res = await fetch('/api/config');
-            const data = await res.json();
-            container.innerHTML = renderConfig(data);
+            originalConfig = await res.json();
+            container.innerHTML = renderEditableConfig(originalConfig);
+            attachConfigListeners();
+            saveBtn.disabled = true;
         } catch (e) { container.innerHTML = '<div class="panel"><p>Failed to load configuration</p></div>'; }
     }
 
-    function renderConfig(cfg) {
+    function renderEditableConfig(cfg) {
         return `
             <div class="panel config-card">
                 <h3><i class="ph ph-grid-four"></i> Data Structure</h3>
                 <div class="config-items">
-                    ${configRow('Bus Bars', cfg.structure.bus_bars)}
-                    ${configRow('Points / Bar', cfg.structure.points_per_bar)}
-                    ${configRow('Total Points', cfg.structure.total_points)}
+                    ${editRow('structure', 'bus_bars', 'Bus Bars', cfg.structure.bus_bars, 'number')}
+                    ${editRow('structure', 'points_per_bar', 'Points / Bar', cfg.structure.points_per_bar, 'number')}
+                    <div class="config-row"><span class="cr-label">Total Points <span class="cr-auto">(auto)</span></span><span class="cr-value" id="cfg-total-points">${cfg.structure.total_points}</span></div>
                 </div>
             </div>
             <div class="panel config-card">
                 <h3><i class="ph ph-funnel"></i> Quality Thresholds</h3>
                 <div class="config-items">
-                    ${configRow('Rule A (>N)', cfg.thresholds.rule_a_threshold + ' N')}
-                    ${configRow('Rule A min %', (cfg.thresholds.rule_a_percentage * 100) + '%')}
-                    ${configRow('Rule A min points', cfg.thresholds.min_points_rule_a)}
-                    ${configRow('Rule B (≤N)', cfg.thresholds.rule_b_threshold + ' N')}
-                    ${configRow('Rule B max/bar', cfg.thresholds.max_rule_b_per_bar)}
-                    ${configRow('Rule C (≤N)', cfg.thresholds.rule_c_threshold + ' N')}
-                    ${configRow('Rule C max total', cfg.thresholds.max_rule_c_total)}
-                    ${configRow('Rule C max/bar', cfg.thresholds.max_rule_c_per_bar)}
+                    ${editRow('thresholds', 'rule_a_threshold', 'Rule A (>N)', cfg.thresholds.rule_a_threshold, 'number', '0.01')}
+                    ${editRow('thresholds', 'rule_a_percentage', 'Rule A min %', cfg.thresholds.rule_a_percentage, 'number', '0.01')}
+                    <div class="config-row"><span class="cr-label">Rule A min points <span class="cr-auto">(auto)</span></span><span class="cr-value" id="cfg-min-points">${cfg.thresholds.min_points_rule_a}</span></div>
+                    ${editRow('thresholds', 'rule_b_threshold', 'Rule B (≤N)', cfg.thresholds.rule_b_threshold, 'number', '0.01')}
+                    ${editRow('thresholds', 'max_rule_b_per_bar', 'Rule B max/bar', cfg.thresholds.max_rule_b_per_bar, 'number')}
+                    ${editRow('thresholds', 'rule_c_threshold', 'Rule C (≤N)', cfg.thresholds.rule_c_threshold, 'number', '0.01')}
+                    ${editRow('thresholds', 'max_rule_c_total', 'Rule C max total', cfg.thresholds.max_rule_c_total, 'number')}
+                    ${editRow('thresholds', 'max_rule_c_per_bar', 'Rule C max/bar', cfg.thresholds.max_rule_c_per_bar, 'number')}
                 </div>
             </div>
             <div class="panel config-card">
                 <h3><i class="ph ph-text-aa"></i> OCR Settings</h3>
                 <div class="config-items">
-                    ${configRow('Min Confidence', cfg.ocr.min_confidence)}
-                    ${configRow('Value Min', cfg.ocr.data_value_min + ' N')}
-                    ${configRow('Value Max', cfg.ocr.data_value_max + ' N')}
+                    ${editRow('ocr', 'min_confidence', 'Min Confidence', cfg.ocr.min_confidence, 'number', '0.01')}
+                    ${editRow('ocr', 'data_value_min', 'Value Min (N)', cfg.ocr.data_value_min, 'number', '0.1')}
+                    ${editRow('ocr', 'data_value_max', 'Value Max (N)', cfg.ocr.data_value_max, 'number', '0.1')}
                 </div>
             </div>
             <div class="panel config-card">
                 <h3><i class="ph ph-git-diff"></i> Verification</h3>
                 <div class="config-items">
-                    ${configRow('Tolerance', '±' + cfg.verification.tolerance)}
-                    ${configRow('Match Threshold', (cfg.verification.match_threshold * 100) + '%')}
-                </div>
-            </div>
-            <div class="panel config-card">
-                <h3><i class="ph ph-hard-drives"></i> System Paths</h3>
-                <div class="config-items">
-                    ${configRow('Max File Size', cfg.system.max_file_size_mb + ' MB')}
-                    ${configRow('Input Dir', cfg.system.input_dir)}
-                    ${configRow('Processed Dir', cfg.system.processed_dir)}
-                    ${configRow('Failed Dir', cfg.system.failed_dir)}
-                    ${configRow('Output Dir', cfg.system.output_dir)}
-                    ${configRow('Logs Dir', cfg.system.logs_dir)}
+                    ${editRow('verification', 'tolerance', 'Tolerance (±)', cfg.verification.tolerance, 'number', '0.001')}
+                    ${editRow('verification', 'match_threshold', 'Match Threshold', cfg.verification.match_threshold, 'number', '0.01')}
                 </div>
             </div>
         `;
     }
-    function configRow(label, value) {
-        return `<div class="config-row"><span class="cr-label">${label}</span><span class="cr-value">${value}</span></div>`;
+
+    function editRow(section, key, label, value, type, step) {
+        const stepAttr = step ? `step="${step}"` : '';
+        return `<div class="config-row">
+            <span class="cr-label">${label}</span>
+            <input type="${type}" class="config-input" data-section="${section}" data-key="${key}" value="${value}" ${stepAttr}>
+        </div>`;
     }
 
-    // ─── Refresh All ───
-    window.refreshAll = function() {
-        fetchMetrics();
-        fetchLogs();
-        showToast('Dashboard refreshed', 'success');
-    };
+    function attachConfigListeners() {
+        document.querySelectorAll('.config-input').forEach(input => {
+            input.addEventListener('input', () => {
+                saveBtn.disabled = false;
+                saveBtn.classList.add('btn-unsaved');
+                // Auto-compute derived
+                const bars = document.querySelector('[data-section="structure"][data-key="bus_bars"]');
+                const ppb = document.querySelector('[data-section="structure"][data-key="points_per_bar"]');
+                const pct = document.querySelector('[data-section="thresholds"][data-key="rule_a_percentage"]');
+                if (bars && ppb) {
+                    const total = (parseInt(bars.value) || 0) * (parseInt(ppb.value) || 0);
+                    const el = document.getElementById('cfg-total-points');
+                    if (el) el.textContent = total;
+                    const mp = document.getElementById('cfg-min-points');
+                    if (mp && pct) mp.textContent = Math.floor(total * (parseFloat(pct.value) || 0));
+                }
+            });
+        });
+    }
 
-    // ─── Toast Notifications ───
+    saveBtn.addEventListener('click', async () => {
+        const payload = {};
+        document.querySelectorAll('.config-input').forEach(input => {
+            const sec = input.dataset.section;
+            const key = input.dataset.key;
+            if (!payload[sec]) payload[sec] = {};
+            payload[sec][key] = input.type === 'number' ? parseFloat(input.value) : input.value;
+        });
+
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<div class="spinner-sm"></div> Saving...';
+        try {
+            const res = await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const data = await res.json();
+            if (data.success) {
+                showToast('Configuration saved (' + data.updated.length + ' fields)', 'success');
+                saveBtn.classList.remove('btn-unsaved');
+            } else showToast('Save failed: ' + data.error, 'error');
+        } catch (e) { showToast('Save failed: ' + e, 'error'); }
+        finally { saveBtn.innerHTML = '<i class="ph ph-floppy-disk"></i> Save Changes'; saveBtn.disabled = true; }
+    });
+
+    // ─── Refresh All ───
+    window.refreshAll = function() { fetchMetrics(); fetchLogs(); showToast('Dashboard refreshed', 'success'); };
+
+    // ─── Toast ───
     function showToast(message, type = 'info') {
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
@@ -279,7 +471,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderResults(result) {
         const decision = result.decision || 'UNKNOWN';
         const banner = document.getElementById('decision-banner');
-        const text = document.getElementById('decision-text');
         banner.className = `decision-banner decision-${decision}`;
         let iconClass = 'warning-circle';
         if (decision === 'APPROVED') iconClass = 'check-circle';
@@ -336,11 +527,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     else if (val > 0.8) cls = 'cell-a';
                     tr += `<td class="${cls}">${txt}</td>`;
                 });
-                tr += '</tr>';
-                body += tr;
+                body += tr + '</tr>';
             });
-            body += '</tbody>';
-            table.innerHTML += body;
+            table.innerHTML += body + '</tbody>';
         }
 
         const report = result.eval_report;
@@ -348,12 +537,11 @@ document.addEventListener('DOMContentLoaded', () => {
         rTable.innerHTML = '<tr><th>Rule</th><th>Passed</th><th>Detail</th></tr>';
         if (report && report.metrics) {
             const m = report.metrics;
-            const r1 = `<tr><td>Rule A (>0.8)</td><td>${m.rule_A.passed ? '✅ Yes' : '❌ No'}</td><td>${m.rule_A.points_gt_08} / ${m.rule_A.required} req.</td></tr>`;
+            rTable.innerHTML += `<tr><td>Rule A (>0.8)</td><td>${m.rule_A.passed ? '✅ Yes' : '❌ No'}</td><td>${m.rule_A.points_gt_08} / ${m.rule_A.required} req.</td></tr>`;
             const maxB = Math.max(...Object.values(m.rule_B.failures_per_bar).concat([0]));
-            const r2 = `<tr><td>Rule B (≤0.35/bar)</td><td>${m.rule_B.passed ? '✅ Yes' : '❌ No'}</td><td>Max per bar: ${maxB} (limit: 2)</td></tr>`;
+            rTable.innerHTML += `<tr><td>Rule B (≤0.35/bar)</td><td>${m.rule_B.passed ? '✅ Yes' : '❌ No'}</td><td>Max per bar: ${maxB} (limit: 2)</td></tr>`;
             const maxC = Math.max(...Object.values(m.rule_C.failures_per_bar).concat([0]));
-            const r3 = `<tr><td>Rule C (≤0.1 total)</td><td>${m.rule_C.passed ? '✅ Yes' : '❌ No'}</td><td>Total: ${m.rule_C.total_failures} (limit: 3), Max/bar: ${maxC} (limit: 1)</td></tr>`;
-            rTable.innerHTML += r1 + r2 + r3;
+            rTable.innerHTML += `<tr><td>Rule C (≤0.1 total)</td><td>${m.rule_C.passed ? '✅ Yes' : '❌ No'}</td><td>Total: ${m.rule_C.total_failures} (limit: 3), Max/bar: ${maxC} (limit: 1)</td></tr>`;
         }
     }
 

@@ -7,6 +7,7 @@
     <meta name="description" content="Manufacturing QC real-time solder point quality control pipeline monitor">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -27,9 +28,6 @@
             <a href="#" class="nav-item" data-view="processed" id="nav-processed">
                 <i class="ph ph-folder-open"></i> Processed
             </a>
-            <a href="#" class="nav-item" data-view="failed" id="nav-failed">
-                <i class="ph ph-warning-circle"></i> Failed
-            </a>
             <a href="#" class="nav-item" data-view="reports" id="nav-reports">
                 <i class="ph ph-file-text"></i> Reports
             </a>
@@ -49,9 +47,7 @@
     <!-- ───── Main Content ───── -->
     <main class="main-content">
 
-        <!-- ══════════════════════════════════════════════ -->
-        <!--               VIEW: DASHBOARD                 -->
-        <!-- ══════════════════════════════════════════════ -->
+        <!-- ═══ VIEW: DASHBOARD ═══ -->
         <section class="view active" id="view-dashboard">
             <header class="topbar">
                 <div class="page-title">
@@ -63,8 +59,7 @@
                 </button>
             </header>
 
-            <!-- Metric Cards -->
-            <div class="metrics-grid">
+            <div class="metrics-grid metrics-3">
                 <div class="metric-card" data-view-link="processed">
                     <div class="metric-header">
                         <div class="metric-icon-wrap"><i class="ph ph-check-circle"></i></div>
@@ -72,14 +67,6 @@
                         <h2 id="metric-processed">0</h2>
                     </div>
                     <div class="metric-footer"><span>QC pipeline completions</span> <span class="view-link">View →</span></div>
-                </div>
-                <div class="metric-card" data-view-link="failed">
-                    <div class="metric-header">
-                        <div class="metric-icon-wrap"><i class="ph ph-x-circle"></i></div>
-                        <h3>Failed</h3>
-                        <h2 id="metric-failed">0</h2>
-                    </div>
-                    <div class="metric-footer"><span>Inspection failures</span> <span class="view-link">View →</span></div>
                 </div>
                 <div class="metric-card" data-view-link="reports">
                     <div class="metric-header">
@@ -99,7 +86,6 @@
                 </div>
             </div>
 
-            <!-- Upload + Results -->
             <div class="split-layout">
                 <div class="panel upload-panel">
                     <h2>Run Batch Inspection</h2>
@@ -164,9 +150,7 @@
             </div>
         </section>
 
-        <!-- ══════════════════════════════════════════════ -->
-        <!--              VIEW: PROCESSED                  -->
-        <!-- ══════════════════════════════════════════════ -->
+        <!-- ═══ VIEW: PROCESSED ═══ -->
         <section class="view" id="view-processed">
             <header class="topbar">
                 <div class="page-title">
@@ -189,75 +173,80 @@
             </div>
         </section>
 
-        <!-- ══════════════════════════════════════════════ -->
-        <!--               VIEW: FAILED                    -->
-        <!-- ══════════════════════════════════════════════ -->
-        <section class="view" id="view-failed">
-            <header class="topbar">
-                <div class="page-title">
-                    <h1>Failed Inspections</h1>
-                    <p>Files that failed quality control checks</p>
-                </div>
-                <button class="btn-refresh" onclick="loadFailed()" title="Refresh">
-                    <i class="ph ph-arrows-clockwise"></i>
-                </button>
-            </header>
-            <div class="panel">
-                <div class="file-list-header">
-                    <span class="fh-name">File Name</span>
-                    <span class="fh-size">Size</span>
-                    <span class="fh-date">Date</span>
-                </div>
-                <div id="failed-list" class="file-list">
-                    <div class="empty-state"><i class="ph ph-warning-circle"></i><p>No failed files</p></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ══════════════════════════════════════════════ -->
-        <!--               VIEW: REPORTS                   -->
-        <!-- ══════════════════════════════════════════════ -->
+        <!-- ═══ VIEW: REPORTS ═══ -->
         <section class="view" id="view-reports">
             <header class="topbar">
                 <div class="page-title">
                     <h1>Reports</h1>
-                    <p>Generated Excel inspection reports available for download</p>
+                    <p>Generated inspection reports with detailed analytics</p>
                 </div>
                 <button class="btn-refresh" onclick="loadReports()" title="Refresh">
                     <i class="ph ph-arrows-clockwise"></i>
                 </button>
             </header>
-            <div class="panel">
+            <!-- Report List -->
+            <div class="panel" id="reports-list-panel">
                 <div class="file-list-header">
                     <span class="fh-name">Report Name</span>
                     <span class="fh-size">Size</span>
                     <span class="fh-date">Date</span>
-                    <span class="fh-action">Action</span>
+                    <span class="fh-action">Actions</span>
                 </div>
                 <div id="reports-list" class="file-list">
                     <div class="empty-state"><i class="ph ph-file-text"></i><p>No reports generated yet</p></div>
                 </div>
             </div>
+            <!-- Report Detail (graphs) — shown when clicking a report -->
+            <div class="panel hidden" id="report-detail-panel">
+                <div class="report-detail-header">
+                    <button class="btn-back" id="btn-back-reports"><i class="ph ph-arrow-left"></i> Back to Reports</button>
+                    <h2 id="report-detail-title">Report Detail</h2>
+                    <div class="report-detail-actions">
+                        <button class="btn-secondary" id="btn-download-charts"><i class="ph ph-download-simple"></i> Download Charts</button>
+                        <a href="#" class="btn-secondary" id="btn-download-excel"><i class="ph ph-file-xls"></i> Download Excel</a>
+                    </div>
+                </div>
+
+                <div class="report-stats-row" id="report-stats-row"></div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Average Solder Force per Bus Bar</h3>
+                        <canvas id="chart-bar-avg"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Value Distribution (Quality Zones)</h3>
+                        <canvas id="chart-distribution"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Average Solder Force per Point Position</h3>
+                        <canvas id="chart-point-avg"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Heatmap — All Solder Points</h3>
+                        <div class="heatmap-container" id="heatmap-container"></div>
+                    </div>
+                </div>
+            </div>
         </section>
 
-        <!-- ══════════════════════════════════════════════ -->
-        <!--             VIEW: CONFIGURATION               -->
-        <!-- ══════════════════════════════════════════════ -->
+        <!-- ═══ VIEW: CONFIGURATION ═══ -->
         <section class="view" id="view-config">
             <header class="topbar">
                 <div class="page-title">
                     <h1>Configuration</h1>
-                    <p>Current system thresholds and processing parameters</p>
+                    <p>Edit system thresholds and processing parameters</p>
                 </div>
+                <button class="btn-primary btn-save-config" id="btn-save-config" disabled>
+                    <i class="ph ph-floppy-disk"></i> Save Changes
+                </button>
             </header>
             <div class="config-grid" id="config-container">
                 <div class="panel config-loading"><div class="spinner"></div><p>Loading configuration...</p></div>
             </div>
         </section>
 
-        <!-- ══════════════════════════════════════════════ -->
-        <!--               VIEW: ABOUT                     -->
-        <!-- ══════════════════════════════════════════════ -->
+        <!-- ═══ VIEW: ABOUT ═══ -->
         <section class="view" id="view-about">
             <header class="topbar">
                 <div class="page-title">
