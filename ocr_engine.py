@@ -10,13 +10,13 @@ import cv2
 from typing import List, Tuple, Optional
 from google.cloud import vision
 from google.oauth2 import service_account
-from google.oauth2 import service_account
 
 from config import BUS_BARS, POINTS_PER_BAR, BASE_DIR, CATEGORY_MANUAL_REVIEW
 from data_cleaner import DataCleaner
 from validator import ValidationError
 
 CREDENTIALS_PATH = BASE_DIR / "google_credentials.json"
+VISION_SCOPES = ["https://www.googleapis.com/auth/cloud-platform"]
 
 
 class OCREngine:
@@ -38,9 +38,17 @@ class OCREngine:
                 "You can get this from the Google Cloud Console (APIs & Services -> Credentials)."
             )
 
-        creds = service_account.Credentials.from_service_account_file(str(CREDENTIALS_PATH))
+        creds = service_account.Credentials.from_service_account_file(
+            str(CREDENTIALS_PATH),
+            scopes=VISION_SCOPES,
+        )
         cls._cached_client = vision.ImageAnnotatorClient(credentials=creds)
         return cls._cached_client
+
+    @classmethod
+    def _reset_vision_client(cls):
+        """Forces client recreation on the next request (used after auth failures)."""
+        cls._cached_client = None
 
     @staticmethod
     def extract_matrix(image_np: np.ndarray, batch_manager) -> Tuple[Optional[List[List[float]]], Optional[str]]:
@@ -60,7 +68,32 @@ class OCREngine:
         try:
             response = client.document_text_detection(image=image, timeout=30)
         except Exception as e:
-            raise ValidationError(f"Google Cloud Vision API request failed: {e}")
+            err_text = str(e)
+            auth_error_markers = (
+                "ACCESS_TOKEN_EXPIRED",
+                "invalid authentication credentials",
+                "UNAUTHENTICATED",
+            )
+
+            # Token/auth errors can occur after long idle periods. Rebuild the
+            # client once and retry the same request.
+            if any(marker.lower() in err_text.lower() for marker in auth_error_markers):
+                logging.warning("Vision auth failure detected; refreshing client and retrying once.")
+                OCREngine._reset_vision_client()
+                client = OCREngine._get_vision_client()
+                try:
+                    response = client.document_text_detection(image=image, timeout=30)
+                except Exception as retry_error:
+                    retry_text = str(retry_error)
+                    if "invalid jwt" in retry_text.lower() or "reasonable timeframe" in retry_text.lower():
+                        raise ValidationError(
+                            "Google Cloud Vision auth failed after retry due system clock skew. "
+                            "Please sync Windows date/time and timezone, then retry. "
+                            f"Original error: {retry_error}"
+                        )
+                    raise ValidationError(f"Google Cloud Vision API request failed after retry: {retry_error}")
+            else:
+                raise ValidationError(f"Google Cloud Vision API request failed: {e}")
 
         if response.error.message:
             raise ValidationError(f"Google Cloud Vision API Error: {response.error.message}")

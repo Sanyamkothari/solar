@@ -12,9 +12,10 @@ PROCESSED_DIR = BASE_DIR / "processed"
 FAILED_DIR = BASE_DIR / "failed"
 OUTPUT_DIR = BASE_DIR / "output"
 LOGS_DIR = BASE_DIR / "logs"
+DEBUG_DIR = BASE_DIR / "debug"
 
 # Ensure directories exist
-for d in [INPUT_DIR, PROCESSED_DIR, FAILED_DIR, OUTPUT_DIR, LOGS_DIR]:
+for d in [INPUT_DIR, PROCESSED_DIR, FAILED_DIR, OUTPUT_DIR, LOGS_DIR, DEBUG_DIR]:
     d.mkdir(parents=True, exist_ok=True)
 
 # Data Structure Assumptions (from solder-point test equipment: 16 bus bars × 7 measurement points each)
@@ -41,6 +42,22 @@ MAX_RULE_C_PER_BAR = 1       # Max points ≤ 0.1 allowed per single bar
 
 # OCR Settings
 MIN_OCR_CONFIDENCE = 0.85
+
+# Optional DL Table Detection (YOLO) Settings
+# When enabled and model is available, the detected table region is cropped
+# before geometric/image enhancement steps. If detection fails, pipeline falls
+# back to the existing heuristic crop.
+ENABLE_YOLO_TABLE_CROP = True
+YOLO_TABLE_MODEL_PATH = BASE_DIR / "models" / "table_detector.pt"
+# Bootstrap model confidence is typically low until you fine-tune with
+# hand-labeled data; keep threshold relaxed to allow detections.
+YOLO_TABLE_CONFIDENCE = 0.01
+YOLO_TABLE_IOU = 0.45
+# Set to an integer class id when your model has multiple classes.
+# Keep as None for single-class table detectors.
+YOLO_TABLE_CLASS_ID = None
+# Save a visual debug image with either YOLO box or fallback crop box.
+YOLO_DEBUG_SAVE_IMAGE = True
 
 # Data bounds — any cleaned value outside this range is flagged as OCR noise
 DATA_VALUE_MIN = 0.0

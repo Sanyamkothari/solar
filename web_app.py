@@ -6,10 +6,11 @@ from pathlib import Path
 from typing import Optional, List
 from datetime import datetime
 
-from fastapi import FastAPI, File, UploadFile, Request
+from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Response
 
 # Adjust Python path
 import sys
@@ -61,7 +62,22 @@ def _human_size(num_bytes: int) -> str:
 @app.get("/", response_class=HTMLResponse)
 async def serve_index():
     with open(STATIC_DIR / "index.html", "r", encoding="utf-8") as f:
-        return f.read()
+        html = f.read()
+
+    css_ver = int((STATIC_DIR / "styles.css").stat().st_mtime) if (STATIC_DIR / "styles.css").exists() else 1
+    js_ver = int((STATIC_DIR / "app.js").stat().st_mtime) if (STATIC_DIR / "app.js").exists() else 1
+
+    html = html.replace('/static/styles.css', f'/static/styles.css?v={css_ver}')
+    html = html.replace('/static/app.js', f'/static/app.js?v={js_ver}')
+    return html
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    favicon_path = STATIC_DIR / "favicon.ico"
+    if favicon_path.exists() and favicon_path.is_file():
+        return FileResponse(path=str(favicon_path), media_type="image/x-icon")
+    return Response(status_code=204)
 
 
 # ─────────────────────── Metrics ───────────────────────
@@ -81,6 +97,12 @@ async def get_metrics():
 @app.get("/api/processed")
 async def list_processed():
     files = sorted(PROCESSED_DIR.glob("*"), key=lambda f: f.stat().st_mtime, reverse=True)
+    return {"files": [_file_info(f) for f in files if f.is_file()]}
+
+
+@app.get("/api/failed")
+async def list_failed():
+    files = sorted(FAILED_DIR.glob("*"), key=lambda f: f.stat().st_mtime, reverse=True)
     return {"files": [_file_info(f) for f in files if f.is_file()]}
 
 
@@ -192,6 +214,32 @@ async def report_detail(filename: str):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
+@app.get("/api/processed/view/{filename}")
+async def view_processed_file(filename: str):
+    filepath = PROCESSED_DIR / filename
+    if not filepath.exists() or not filepath.is_file():
+        return JSONResponse(status_code=404, content={"error": "File not found"})
+    if not filepath.resolve().is_relative_to(PROCESSED_DIR.resolve()):
+        return JSONResponse(status_code=403, content={"error": "Forbidden"})
+    ext = filepath.suffix.lower()
+    media_types = {'.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg'}
+    media_type = media_types.get(ext, 'application/octet-stream')
+    return FileResponse(path=str(filepath), media_type=media_type)
+
+
+@app.get("/api/failed/view/{filename}")
+async def view_failed_file(filename: str):
+    filepath = FAILED_DIR / filename
+    if not filepath.exists() or not filepath.is_file():
+        return JSONResponse(status_code=404, content={"error": "File not found"})
+    if not filepath.resolve().is_relative_to(FAILED_DIR.resolve()):
+        return JSONResponse(status_code=403, content={"error": "Forbidden"})
+    ext = filepath.suffix.lower()
+    media_types = {'.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg'}
+    media_type = media_types.get(ext, 'application/octet-stream')
+    return FileResponse(path=str(filepath), media_type=media_type)
+
+
 # ─────────────────────── Upload & Process ───────────────────────
 @app.post("/api/upload")
 async def upload_file(
@@ -222,7 +270,7 @@ async def upload_file(
 # ─────────────────────── Logs ───────────────────────
 @app.get("/api/logs")
 async def get_logs():
-    logs = list(LOGS_DIR.glob('*.log'))
+    logs = list(LOGS_DIR.glob('*.log*'))
     if logs:
         latest_log = max(logs, key=os.path.getctime)
         try:

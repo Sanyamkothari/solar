@@ -35,12 +35,13 @@ class DataCleaner:
         except ValueError:
             raise ValueError(f"Failed to cleanly convert OCR value to float: '{val}'")
 
-        # Decimal Point Restoration
-        # Since logical values are between 0.0 and 5, if the OCR engine 
-        # drops a decimal point (reading 1.51 as 151), the raw value will be > 5.
-        # We continually divide by 10 until the value falls under 5.
-        while result > 5:
-            result = result / 10.0
+        # Decimal point restoration for OCR strings that likely lost the decimal.
+        # Apply this only when the source text has no decimal separator, so valid
+        # values like "10.0" or "99.9" are not incorrectly scaled down.
+        has_decimal_separator = ("." in val)
+        if not has_decimal_separator and result > DATA_VALUE_MAX:
+            while result > DATA_VALUE_MAX:
+                result = result / 10.0
 
         # Bounds check — clamp obvious OCR noise and warn instead of crashing
         if result < DATA_VALUE_MIN or result > DATA_VALUE_MAX:

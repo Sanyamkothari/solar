@@ -50,6 +50,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitBtn = document.getElementById('submit-btn');
     function checkSubmitStatus() { submitBtn.disabled = !(mainFile.files.length > 0); }
 
+    function resetResultPanel() {
+        document.getElementById('decision-banner').className = 'decision-banner decision-PENDING';
+        document.getElementById('decision-banner').innerHTML = '<i class="ph ph-hourglass"></i> <span>PROCESSING</span>';
+        document.getElementById('matrix-source').textContent = 'Data Source: N/A';
+        document.getElementById('verification-section').classList.add('hidden');
+        document.getElementById('steps-container').innerHTML = '';
+        document.getElementById('matrix-table').innerHTML = '';
+        document.getElementById('rule-table').innerHTML = '<tr><th>Rule</th><th>Passed</th><th>Detail</th></tr>';
+    }
+
+    function renderRequestError(message) {
+        document.getElementById('decision-banner').className = 'decision-banner decision-DATA_ERROR';
+        document.getElementById('decision-banner').innerHTML = '<i class="ph ph-warning-octagon"></i> <span>REQUEST FAILED</span>';
+        document.getElementById('matrix-source').textContent = message;
+        document.getElementById('verification-section').classList.add('hidden');
+        document.getElementById('steps-container').innerHTML = `<div class="step-row fail"><span class="step-name">Upload</span><span class="step-status">❌ FAIL</span><span class="step-detail">${message}</span><span class="step-time">--:--:--</span></div>`;
+        document.getElementById('matrix-table').innerHTML = '';
+        document.getElementById('rule-table').innerHTML = '<tr><th>Rule</th><th>Passed</th><th>Detail</th></tr>';
+    }
+
     // ─── Upload Form ───
     document.getElementById('upload-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -61,16 +81,31 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('results-panel').classList.remove('hidden');
         document.getElementById('loader').classList.remove('hidden');
         document.getElementById('results-content').classList.add('hidden');
+        resetResultPanel();
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<div class="spinner-sm"></div> <span>Processing...</span>';
 
         try {
             const response = await fetch('/api/upload', { method: 'POST', body: formData });
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`Server error ${response.status}: ${errText}`);
+            }
             const data = await response.json();
-            if (data.success) { renderResults(data.data); fetchMetrics(); fetchLogs(); }
-            else showToast('Pipeline failed: ' + data.error, 'error');
-        } catch (error) { showToast('Request failed: ' + error, 'error'); }
-        finally {
+            if (data.success && data.data) {
+                renderResults(data.data);
+                fetchMetrics();
+                fetchLogs();
+            } else {
+                const msg = 'Pipeline failed: ' + (data.error || 'No details provided');
+                renderRequestError(msg);
+                showToast(msg, 'error');
+            }
+        } catch (error) {
+            const msg = 'Request failed: ' + error;
+            renderRequestError(msg);
+            showToast(msg, 'error');
+        } finally {
             document.getElementById('loader').classList.add('hidden');
             document.getElementById('results-content').classList.remove('hidden');
             submitBtn.disabled = false;
@@ -109,27 +144,61 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { console.error(e); }
     }
 
-    // ─── File Listing ───
+    // ─── Image Lightbox ───
+    const lightbox = document.getElementById('img-lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxClose = document.getElementById('lightbox-close');
+    if (lightboxClose) {
+        lightboxClose.addEventListener('click', () => lightbox.classList.add('hidden'));
+    }
+    if (lightbox) {
+        lightbox.addEventListener('click', (e) => { if (e.target === lightbox) lightbox.classList.add('hidden'); });
+    }
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && lightbox) lightbox.classList.add('hidden'); });
+
+    function openLightbox(src, name) {
+        lightboxImg.src = src;
+        lightboxImg.alt = name;
+        document.getElementById('lightbox-name').textContent = name;
+        lightbox.classList.remove('hidden');
+    }
+
+    // ─── File Listing Helpers ───
     function renderFileList(containerId, files, opts = {}) {
         const container = document.getElementById(containerId);
         if (!files || files.length === 0) {
             container.innerHTML = '<div class="empty-state"><i class="ph ph-folder-dashed"></i><p>No files found</p></div>';
             return;
         }
-        container.innerHTML = files.map((f, i) => `
-            <div class="file-row" style="animation-delay: ${i * 0.03}s">
-                <span class="fr-icon"><i class="ph ph-file-${getFileIcon(f.extension)}"></i></span>
-                <span class="fr-name">${f.name}</span>
-                <span class="fr-size">${f.size_display}</span>
-                <span class="fr-date">${f.modified}</span>
-                ${opts.showActions ? `
-                    <span class="fr-actions">
-                        <button class="btn-icon btn-view-report" data-filename="${f.name}" title="View Graphs"><i class="ph ph-chart-line-up"></i></button>
-                        <a href="/api/reports/download/${encodeURIComponent(f.name)}" class="btn-icon" title="Download"><i class="ph ph-download-simple"></i></a>
-                    </span>` : ''}
-            </div>
-        `).join('');
+        const imageExts = ['.png', '.jpg', '.jpeg'];
+        const showDownload = !!opts.showDownload;
+        const viewBase = opts.viewBase || null;
+        const showActions = !!opts.showActions;
+        container.innerHTML = files.map((f, i) => {
+            const isImage = imageExts.includes(f.extension);
+            const viewBtn = (isImage && viewBase)
+                ? `<button class="btn-view-img" data-src="${viewBase}/${encodeURIComponent(f.name)}" data-name="${f.name}" title="View image"><i class="ph ph-eye"></i></button>`
+                : '';
+            const dlBtn = showDownload
+                ? `<a href="/api/reports/download/${encodeURIComponent(f.name)}" class="btn-download" title="Download"><i class="ph ph-download-simple"></i></a>`
+                : '';
+            const reportBtn = showActions
+                ? `<button class="btn-view-report" data-filename="${f.name}" title="View Graphs"><i class="ph ph-chart-line-up"></i></button>`
+                : '';
+            return `
+                <div class="file-row" style="animation-delay: ${i * 0.03}s">
+                    <span class="fr-icon"><i class="ph ph-file-${getFileIcon(f.extension)}"></i></span>
+                    <span class="fr-name">${f.name}</span>
+                    <span class="fr-size">${f.size_display}</span>
+                    <span class="fr-date">${f.modified}</span>
+                    ${viewBtn}${reportBtn}${dlBtn}
+                </div>`;
+        }).join('');
 
+        // Attach lightbox click handlers
+        container.querySelectorAll('.btn-view-img').forEach(btn => {
+            btn.addEventListener('click', () => openLightbox(btn.dataset.src, btn.dataset.name));
+        });
         if (opts.showActions) {
             container.querySelectorAll('.btn-view-report').forEach(btn => {
                 btn.addEventListener('click', () => openReportDetail(btn.dataset.filename));
@@ -144,16 +213,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ─── Load Pages ───
     window.loadProcessed = async function() {
-        const c = document.getElementById('processed-list');
-        c.innerHTML = '<div class="loading-row"><div class="spinner-sm"></div> Loading...</div>';
-        try { const r = await fetch('/api/processed'); const d = await r.json(); renderFileList('processed-list', d.files); }
-        catch (e) { c.innerHTML = '<div class="empty-state"><p>Failed to load</p></div>'; }
+        const container = document.getElementById('processed-list');
+        container.innerHTML = '<div class="loading-row"><div class="spinner-sm"></div> Loading...</div>';
+        try {
+            const res = await fetch('/api/processed');
+            const data = await res.json();
+            renderFileList('processed-list', data.files, { viewBase: '/api/processed/view' });
+        } catch (e) { container.innerHTML = '<div class="empty-state"><p>Failed to load files</p></div>'; }
+    };
+
+    window.loadFailed = async function() {
+        const container = document.getElementById('failed-list');
+        container.innerHTML = '<div class="loading-row"><div class="spinner-sm"></div> Loading...</div>';
+        try {
+            const res = await fetch('/api/failed');
+            const data = await res.json();
+            renderFileList('failed-list', data.files, { viewBase: '/api/failed/view' });
+        } catch (e) { container.innerHTML = '<div class="empty-state"><p>Failed to load files</p></div>'; }
     };
 
     window.loadReports = async function() {
         const c = document.getElementById('reports-list');
         c.innerHTML = '<div class="loading-row"><div class="spinner-sm"></div> Loading...</div>';
-        try { const r = await fetch('/api/reports'); const d = await r.json(); renderFileList('reports-list', d.files, { showActions: true }); }
+        try { const r = await fetch('/api/reports'); const d = await r.json(); renderFileList('reports-list', d.files, { showActions: true, showDownload: true }); }
         catch (e) { c.innerHTML = '<div class="empty-state"><p>Failed to load</p></div>'; }
     };
 
@@ -475,10 +557,11 @@ document.addEventListener('DOMContentLoaded', () => {
         let iconClass = 'warning-circle';
         if (decision === 'APPROVED') iconClass = 'check-circle';
         else if (decision === 'REJECTED') iconClass = 'x-circle';
-        else if (decision === 'REVIEW') iconClass = 'magnifying-glass';
+        else if (decision === 'MANUAL_REVIEW_REQUIRED') iconClass = 'magnifying-glass';
         banner.innerHTML = `<i class="ph ph-${iconClass}"></i> <span>${decision}</span>`;
 
-        document.getElementById('matrix-source').textContent = `Data Source: ${result.matrix_source || 'N/A'}`;
+        const batchText = result.batch_id ? `Batch: ${result.batch_id} | ` : '';
+        document.getElementById('matrix-source').textContent = `${batchText}Data Source: ${result.matrix_source || 'N/A'}`;
 
         const vr = result.verification_report;
         const vSec = document.getElementById('verification-section');
@@ -520,11 +603,16 @@ document.addEventListener('DOMContentLoaded', () => {
             matrixObj.forEach((row, rIdx) => {
                 let tr = `<tr><td>Bar ${rIdx + 1}</td>`;
                 row.forEach(val => {
-                    let cls = 'cell-mid', txt = val.toFixed(3);
-                    if (val < 0) { cls = 'cell-error'; txt = '❌ ERR'; }
-                    else if (val <= 0.1) cls = 'cell-c';
-                    else if (val <= 0.35) cls = 'cell-b';
-                    else if (val > 0.8) cls = 'cell-a';
+                    const nVal = Number(val);
+                    let cls = 'cell-mid', txt = Number.isFinite(nVal) ? nVal.toFixed(3) : 'N/A';
+                    if (!Number.isFinite(nVal)) {
+                        cls = 'cell-error';
+                    } else if (nVal < 0) {
+                        cls = 'cell-error';
+                        txt = '❌ ERR';
+                    } else if (nVal <= 0.1) cls = 'cell-c';
+                    else if (nVal <= 0.35) cls = 'cell-b';
+                    else if (nVal > 0.8) cls = 'cell-a';
                     tr += `<td class="${cls}">${txt}</td>`;
                 });
                 body += tr + '</tr>';
@@ -537,11 +625,12 @@ document.addEventListener('DOMContentLoaded', () => {
         rTable.innerHTML = '<tr><th>Rule</th><th>Passed</th><th>Detail</th></tr>';
         if (report && report.metrics) {
             const m = report.metrics;
-            rTable.innerHTML += `<tr><td>Rule A (>0.8)</td><td>${m.rule_A.passed ? '✅ Yes' : '❌ No'}</td><td>${m.rule_A.points_gt_08} / ${m.rule_A.required} req.</td></tr>`;
+            const r1 = `<tr><td>Rule A (>0.8)</td><td>${m.rule_A.passed ? '✅ Yes' : '❌ No'}</td><td>${m.rule_A.points_gt_08} / ${m.rule_A.required} req.</td></tr>`;
             const maxB = Math.max(...Object.values(m.rule_B.failures_per_bar).concat([0]));
-            rTable.innerHTML += `<tr><td>Rule B (≤0.35/bar)</td><td>${m.rule_B.passed ? '✅ Yes' : '❌ No'}</td><td>Max per bar: ${maxB} (limit: 2)</td></tr>`;
+            const r2 = `<tr><td>Rule B (≤0.35/bar)</td><td>${m.rule_B.passed ? '✅ Yes' : '❌ No'}</td><td>Max per bar: ${maxB} (limit: ${m.rule_B.allowed_per_bar})</td></tr>`;
             const maxC = Math.max(...Object.values(m.rule_C.failures_per_bar).concat([0]));
-            rTable.innerHTML += `<tr><td>Rule C (≤0.1 total)</td><td>${m.rule_C.passed ? '✅ Yes' : '❌ No'}</td><td>Total: ${m.rule_C.total_failures} (limit: 3), Max/bar: ${maxC} (limit: 1)</td></tr>`;
+            const r3 = `<tr><td>Rule C (≤0.1 total)</td><td>${m.rule_C.passed ? '✅ Yes' : '❌ No'}</td><td>Total: ${m.rule_C.total_failures} (limit: ${m.rule_C.allowed_total}), Max/bar: ${maxC} (limit: ${m.rule_C.allowed_per_bar})</td></tr>`;
+            rTable.innerHTML += r1 + r2 + r3;
         }
     }
 

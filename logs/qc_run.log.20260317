@@ -1,0 +1,31 @@
+2026-03-17 16:07:15 | INFO     | QC_Automation_Logger | QC Automation System Started.
+2026-03-17 16:08:54 | INFO     | QC_Automation_Logger | [BATCH_20260317_160854_7E534DF6] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-17 16:08:54 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-17 16:09:06 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260317_160854_7E534DF6_Report.xlsx
+2026-03-17 16:09:06 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260317_160854_7E534DF6_test_1.jpeg
+2026-03-17 16:09:06 | INFO     | QC_Automation_Logger | [BATCH_20260317_160854_7E534DF6] Batch sequence complete. Final Decision: APPROVED
+2026-03-17 16:16:03 | INFO     | QC_Automation_Logger | [BATCH_20260317_161603_B61C1101] Detected new file: test_1.xls | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-17 16:16:03 | INFO     | QC_Automation_Logger | Routing to Excel Parser...
+2026-03-17 16:16:04 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260317_161603_B61C1101_Report.xlsx
+2026-03-17 16:16:04 | INFO     | QC_Automation_Logger | Moved test_1.xls to processed/BATCH_20260317_161603_B61C1101_test_1.xls
+2026-03-17 16:16:04 | INFO     | QC_Automation_Logger | [BATCH_20260317_161603_B61C1101] Batch sequence complete. Final Decision: APPROVED
+2026-03-17 16:17:02 | INFO     | QC_Automation_Logger | [BATCH_20260317_161702_3FD4B021] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-17 16:17:02 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-17 16:17:28 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260317_161702_3FD4B021_Report.xlsx
+2026-03-17 16:17:28 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260317_161702_3FD4B021_test_1.jpeg
+2026-03-17 16:17:28 | INFO     | QC_Automation_Logger | [BATCH_20260317_161702_3FD4B021] Batch sequence complete. Final Decision: APPROVED
+2026-03-17 16:39:13 | INFO     | QC_Automation_Logger | [BATCH_20260317_163913_E098A0A6] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-17 16:39:13 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-17 16:39:16 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260317_163913_E098A0A6_Report.xlsx
+2026-03-17 16:39:16 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260317_163913_E098A0A6_test_1.jpeg
+2026-03-17 16:39:16 | INFO     | QC_Automation_Logger | [BATCH_20260317_163913_E098A0A6] Batch sequence complete. Final Decision: APPROVED
+2026-03-17 17:07:58 | INFO     | QC_Automation_Logger | [BATCH_20260317_170758_83206D1D] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-17 17:07:58 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-17 17:08:05 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260317_170758_83206D1D_Report.xlsx
+2026-03-17 17:08:05 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260317_170758_83206D1D_test_1.jpeg
+2026-03-17 17:08:05 | INFO     | QC_Automation_Logger | [BATCH_20260317_170758_83206D1D] Batch sequence complete. Final Decision: APPROVED
+2026-03-17 17:09:30 | INFO     | QC_Automation_Logger | [BATCH_20260317_170930_86608742] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-17 17:09:30 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-17 17:09:41 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260317_170930_86608742_Report.xlsx
+2026-03-17 17:09:41 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260317_170930_86608742_test_1.jpeg
+2026-03-17 17:09:41 | INFO     | QC_Automation_Logger | [BATCH_20260317_170930_86608742] Batch sequence complete. Final Decision: APPROVED

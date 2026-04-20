@@ -1,0 +1,141 @@
+2026-04-09 04:55:11 | INFO     | QC_Automation_Logger | [BATCH_20260409_045511_C071791C] Test message | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 04:55:11 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_001_Report.xlsx
+2026-04-09 04:55:11 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_002_Report.xlsx
+2026-04-09 04:55:11 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_SHEETS_Report.xlsx
+2026-04-09 04:55:11 | ERROR    | QC_Automation_Logger | Unsupported file format: .pdf for test.pdf
+2026-04-09 04:55:11 | ERROR    | QC_Automation_Logger | File huge.xlsx exceeds size limit (52428801 bytes > 52428800 bytes)
+2026-04-09 04:55:11 | INFO     | QC_Automation_Logger | Moved test.xlsx to processed/BATCH_TEST_test.xlsx
+2026-04-09 04:55:11 | INFO     | QC_Automation_Logger | Moved bad.xlsx to failed/BATCH_FAIL_bad.xlsx
+2026-04-09 04:55:12 | INFO     | QC_Automation_Logger | Report generated successfully: INT_TEST_001_Report.xlsx
+2026-04-09 04:55:12 | INFO     | QC_Automation_Logger | Report generated successfully: INT_TEST_002_Report.xlsx
+2026-04-09 04:58:38 | INFO     | QC_Automation_Logger | [BATCH_20260409_045838_F81419A8] Test message | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 04:58:38 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_001_Report.xlsx
+2026-04-09 04:58:38 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_002_Report.xlsx
+2026-04-09 04:58:38 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_SHEETS_Report.xlsx
+2026-04-09 04:58:38 | ERROR    | QC_Automation_Logger | Unsupported file format: .pdf for test.pdf
+2026-04-09 04:58:38 | ERROR    | QC_Automation_Logger | File huge.xlsx exceeds size limit (52428801 bytes > 52428800 bytes)
+2026-04-09 04:58:38 | INFO     | QC_Automation_Logger | Moved test.xlsx to processed/BATCH_TEST_test.xlsx
+2026-04-09 04:58:38 | INFO     | QC_Automation_Logger | Moved bad.xlsx to failed/BATCH_FAIL_bad.xlsx
+2026-04-09 04:58:39 | INFO     | QC_Automation_Logger | Report generated successfully: INT_TEST_001_Report.xlsx
+2026-04-09 04:58:39 | INFO     | QC_Automation_Logger | Report generated successfully: INT_TEST_002_Report.xlsx
+2026-04-09 05:01:38 | INFO     | QC_Automation_Logger | [BATCH_20260409_050138_4AB00847] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 05:01:38 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-04-09 05:01:55 | ERROR    | QC_Automation_Logger | Validation Error during extraction: Google Cloud Vision API request failed: 401 Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project. [reason: "ACCESS_TOKEN_EXPIRED"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "vision.googleapis.com"
+}
+metadata {
+  key: "method"
+  value: "google.cloud.vision.v1.ImageAnnotator.BatchAnnotateImages"
+}
+]
+2026-04-09 05:01:55 | ERROR    | QC_Automation_Logger | [BATCH_20260409_050138_4AB00847] Extraction Failed.
+2026-04-09 05:01:55 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to failed/BATCH_20260409_050138_4AB00847_test_1.jpeg
+2026-04-09 05:03:04 | INFO     | QC_Automation_Logger | [BATCH_20260409_050304_B02603E6] Test message | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 05:03:04 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_001_Report.xlsx
+2026-04-09 05:03:04 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_002_Report.xlsx
+2026-04-09 05:03:04 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_SHEETS_Report.xlsx
+2026-04-09 05:03:04 | ERROR    | QC_Automation_Logger | Unsupported file format: .pdf for test.pdf
+2026-04-09 05:03:05 | ERROR    | QC_Automation_Logger | File huge.xlsx exceeds size limit (52428801 bytes > 52428800 bytes)
+2026-04-09 05:03:05 | INFO     | QC_Automation_Logger | Moved test.xlsx to processed/BATCH_TEST_test.xlsx
+2026-04-09 05:03:05 | INFO     | QC_Automation_Logger | Moved bad.xlsx to failed/BATCH_FAIL_bad.xlsx
+2026-04-09 05:03:05 | INFO     | QC_Automation_Logger | Report generated successfully: INT_TEST_001_Report.xlsx
+2026-04-09 05:03:05 | INFO     | QC_Automation_Logger | Report generated successfully: INT_TEST_002_Report.xlsx
+2026-04-09 05:03:18 | INFO     | QC_Automation_Logger | [BATCH_20260409_050318_F2F05C13] Detected new file: BATCH_20260226_202341_0ADC2505_WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 05:03:18 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-04-09 05:03:24 | ERROR    | QC_Automation_Logger | Validation Error during extraction: Google Cloud Vision API request failed after retry: 401 Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project. [reason: "ACCESS_TOKEN_EXPIRED"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "vision.googleapis.com"
+}
+metadata {
+  key: "method"
+  value: "google.cloud.vision.v1.ImageAnnotator.BatchAnnotateImages"
+}
+]
+2026-04-09 05:03:24 | ERROR    | QC_Automation_Logger | [BATCH_20260409_050318_F2F05C13] Extraction Failed.
+2026-04-09 05:03:24 | INFO     | QC_Automation_Logger | Moved BATCH_20260226_202341_0ADC2505_WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg to failed/BATCH_20260409_050318_F2F05C13_BATCH_20260226_202341_0ADC2505_WhatsApp_Image_2026-02-15_at_9.02.52_AM.jpeg
+2026-04-09 05:04:03 | INFO     | QC_Automation_Logger | [BATCH_20260409_050403_11F7B620] Test message | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 05:04:03 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_001_Report.xlsx
+2026-04-09 05:04:03 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_002_Report.xlsx
+2026-04-09 05:04:03 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_SHEETS_Report.xlsx
+2026-04-09 05:04:03 | ERROR    | QC_Automation_Logger | Unsupported file format: .pdf for test.pdf
+2026-04-09 05:04:03 | ERROR    | QC_Automation_Logger | File huge.xlsx exceeds size limit (52428801 bytes > 52428800 bytes)
+2026-04-09 05:04:03 | INFO     | QC_Automation_Logger | Moved test.xlsx to processed/BATCH_TEST_test.xlsx
+2026-04-09 05:04:03 | INFO     | QC_Automation_Logger | Moved bad.xlsx to failed/BATCH_FAIL_bad.xlsx
+2026-04-09 05:04:03 | INFO     | QC_Automation_Logger | Report generated successfully: INT_TEST_001_Report.xlsx
+2026-04-09 05:04:03 | INFO     | QC_Automation_Logger | Report generated successfully: INT_TEST_002_Report.xlsx
+2026-04-09 10:35:42 | INFO     | QC_Automation_Logger | [BATCH_20260409_103542_6C4D612B] Detected new file: qc_retry_BATCH_20260226_174338_69F92097_WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 10:35:42 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-04-09 10:35:47 | ERROR    | QC_Automation_Logger | Validation Error during extraction: Only 11 numeric tokens found in table area, expected ~112.
+2026-04-09 10:35:47 | ERROR    | QC_Automation_Logger | [BATCH_20260409_103542_6C4D612B] Extraction Failed.
+2026-04-09 10:35:47 | INFO     | QC_Automation_Logger | Moved qc_retry_BATCH_20260226_174338_69F92097_WhatsApp Image 2026-02-15 at 9.02.52 AM.jpeg to failed/BATCH_20260409_103542_6C4D612B_qc_retry_BATCH_20260226_174338_69F92097_WhatsApp_Image_2026-02-15_at_9.02.52_AM.jpeg
+2026-04-09 10:35:58 | INFO     | QC_Automation_Logger | [BATCH_20260409_103558_491F7E06] Detected new file: qc_retry_BATCH_20260309_100027_E93A5B49_test_3_failed.xls | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 10:35:58 | INFO     | QC_Automation_Logger | Routing to Excel Parser...
+2026-04-09 10:35:58 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260409_103558_491F7E06_Report.xlsx
+2026-04-09 10:35:58 | INFO     | QC_Automation_Logger | Moved qc_retry_BATCH_20260309_100027_E93A5B49_test_3_failed.xls to processed/BATCH_20260409_103558_491F7E06_qc_retry_BATCH_20260309_100027_E93A5B49_test_3_failed.xls
+2026-04-09 10:35:58 | INFO     | QC_Automation_Logger | [BATCH_20260409_103558_491F7E06] Batch sequence complete. Final Decision: REJECTED
+2026-04-09 10:36:11 | INFO     | QC_Automation_Logger | [BATCH_20260409_103611_79F09D1D] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 10:36:11 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-04-09 10:36:18 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260409_103611_79F09D1D_Report.xlsx
+2026-04-09 10:36:18 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260409_103611_79F09D1D_test_1.jpeg
+2026-04-09 10:36:18 | INFO     | QC_Automation_Logger | [BATCH_20260409_103611_79F09D1D] Batch sequence complete. Final Decision: APPROVED
+2026-04-09 10:37:22 | INFO     | QC_Automation_Logger | [BATCH_20260409_103722_DC2DBBE1] Detected new file: BATCH_20260409_103611_79F09D1D_test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 10:37:22 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-04-09 10:37:24 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260409_103722_DC2DBBE1_Report.xlsx
+2026-04-09 10:37:24 | INFO     | QC_Automation_Logger | Moved BATCH_20260409_103611_79F09D1D_test_1.jpeg to processed/BATCH_20260409_103722_DC2DBBE1_BATCH_20260409_103611_79F09D1D_test_1.jpeg
+2026-04-09 10:37:24 | INFO     | QC_Automation_Logger | [BATCH_20260409_103722_DC2DBBE1] Batch sequence complete. Final Decision: APPROVED
+2026-04-09 10:38:46 | INFO     | QC_Automation_Logger | [BATCH_20260409_103846_ABA1A024] Test message | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 10:38:46 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_001_Report.xlsx
+2026-04-09 10:38:46 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_002_Report.xlsx
+2026-04-09 10:38:46 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_SHEETS_Report.xlsx
+2026-04-09 10:38:46 | ERROR    | QC_Automation_Logger | Unsupported file format: .pdf for test.pdf
+2026-04-09 10:38:46 | ERROR    | QC_Automation_Logger | File huge.xlsx exceeds size limit (52428801 bytes > 52428800 bytes)
+2026-04-09 10:38:46 | INFO     | QC_Automation_Logger | Moved test.xlsx to processed/BATCH_TEST_test.xlsx
+2026-04-09 10:38:46 | INFO     | QC_Automation_Logger | Moved bad.xlsx to failed/BATCH_FAIL_bad.xlsx
+2026-04-09 10:38:46 | INFO     | QC_Automation_Logger | Report generated successfully: INT_TEST_001_Report.xlsx
+2026-04-09 10:38:46 | INFO     | QC_Automation_Logger | Report generated successfully: INT_TEST_002_Report.xlsx
+2026-04-09 10:38:47 | INFO     | QC_Automation_Logger | [BATCH_20260409_103847_5F71CFC1] Detected new file: BATCH_20260409_103611_79F09D1D_test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 10:38:47 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-04-09 10:38:53 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260409_103847_5F71CFC1_Report.xlsx
+2026-04-09 10:38:53 | INFO     | QC_Automation_Logger | Moved BATCH_20260409_103611_79F09D1D_test_1.jpeg to processed/BATCH_20260409_103847_5F71CFC1_BATCH_20260409_103611_79F09D1D_test_1.jpeg
+2026-04-09 10:38:53 | INFO     | QC_Automation_Logger | [BATCH_20260409_103847_5F71CFC1] Batch sequence complete. Final Decision: APPROVED
+2026-04-09 10:39:23 | INFO     | QC_Automation_Logger | [BATCH_20260409_103923_D1EA24CA] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 10:39:23 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-04-09 10:39:25 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260409_103923_D1EA24CA_Report.xlsx
+2026-04-09 10:39:25 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260409_103923_D1EA24CA_test_1.jpeg
+2026-04-09 10:39:25 | INFO     | QC_Automation_Logger | [BATCH_20260409_103923_D1EA24CA] Batch sequence complete. Final Decision: APPROVED
+2026-04-09 10:43:23 | INFO     | QC_Automation_Logger | [BATCH_20260409_104323_73F6965B] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 10:43:24 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-04-09 10:43:30 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260409_104323_73F6965B_Report.xlsx
+2026-04-09 10:43:30 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260409_104323_73F6965B_test_1.jpeg
+2026-04-09 10:43:30 | INFO     | QC_Automation_Logger | [BATCH_20260409_104323_73F6965B] Batch sequence complete. Final Decision: APPROVED
+2026-04-09 10:43:51 | INFO     | QC_Automation_Logger | [BATCH_20260409_104351_5B7F7676] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 10:43:51 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-04-09 10:43:58 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260409_104351_5B7F7676_Report.xlsx
+2026-04-09 10:43:58 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260409_104351_5B7F7676_test_1.jpeg
+2026-04-09 10:43:58 | INFO     | QC_Automation_Logger | [BATCH_20260409_104351_5B7F7676] Batch sequence complete. Final Decision: APPROVED
+2026-04-09 10:44:11 | INFO     | QC_Automation_Logger | [BATCH_20260409_104411_E9CA711D] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 10:44:11 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-04-09 10:44:14 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260409_104411_E9CA711D_Report.xlsx
+2026-04-09 10:44:14 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260409_104411_E9CA711D_test_1.jpeg
+2026-04-09 10:44:14 | INFO     | QC_Automation_Logger | [BATCH_20260409_104411_E9CA711D] Batch sequence complete. Final Decision: APPROVED
+2026-04-09 11:08:33 | INFO     | QC_Automation_Logger | [BATCH_20260409_110833_8B08BBC7] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 11:08:33 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-04-09 11:09:35 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260409_110833_8B08BBC7_Report.xlsx
+2026-04-09 11:09:35 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260409_110833_8B08BBC7_test_1.jpeg
+2026-04-09 11:09:35 | INFO     | QC_Automation_Logger | [BATCH_20260409_110833_8B08BBC7] Batch sequence complete. Final Decision: APPROVED
+2026-04-09 11:28:44 | INFO     | QC_Automation_Logger | [BATCH_20260409_112844_01C047AC] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 11:28:44 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-04-09 11:28:55 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260409_112844_01C047AC_Report.xlsx
+2026-04-09 11:28:55 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260409_112844_01C047AC_test_1.jpeg
+2026-04-09 11:28:55 | INFO     | QC_Automation_Logger | [BATCH_20260409_112844_01C047AC] Batch sequence complete. Final Decision: APPROVED
+2026-04-09 11:29:23 | INFO     | QC_Automation_Logger | [BATCH_20260409_112923_F01447BC] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-04-09 11:29:23 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-04-09 11:29:28 | WARNING  | QC_Automation_Logger | [BATCH_20260409_112923_F01447BC] Overriding decision with VERIFICATION_FAILED
+2026-04-09 11:29:28 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260409_112923_F01447BC_Report.xlsx
+2026-04-09 11:29:28 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260409_112923_F01447BC_test_1.jpeg
+2026-04-09 11:29:28 | INFO     | QC_Automation_Logger | [BATCH_20260409_112923_F01447BC] Batch sequence complete. Final Decision: VERIFICATION_FAILED

@@ -1,0 +1,55 @@
+2026-03-09 09:23:25 | INFO     | QC_Automation_Logger | QC Automation System Started.
+2026-03-09 09:24:42 | INFO     | QC_Automation_Logger | QC Automation System Started.
+2026-03-09 09:27:06 | INFO     | QC_Automation_Logger | [BATCH_20260309_092706_4DC6C535] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-09 09:27:06 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-09 09:27:15 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260309_092706_4DC6C535_Report.xlsx
+2026-03-09 09:27:15 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260309_092706_4DC6C535_test_1.jpeg
+2026-03-09 09:27:15 | INFO     | QC_Automation_Logger | [BATCH_20260309_092706_4DC6C535] Batch sequence complete. Final Decision: APPROVED
+2026-03-09 09:58:55 | INFO     | QC_Automation_Logger | QC Automation System Started.
+2026-03-09 10:00:27 | INFO     | QC_Automation_Logger | [BATCH_20260309_100027_E93A5B49] Detected new file: test_3_failed.xls | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-09 10:00:27 | INFO     | QC_Automation_Logger | Routing to Excel Parser...
+2026-03-09 10:00:27 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260309_100027_E93A5B49_Report.xlsx
+2026-03-09 10:00:27 | INFO     | QC_Automation_Logger | Moved test_3_failed.xls to processed/BATCH_20260309_100027_E93A5B49_test_3_failed.xls
+2026-03-09 10:00:27 | INFO     | QC_Automation_Logger | [BATCH_20260309_100027_E93A5B49] Batch sequence complete. Final Decision: REJECTED
+2026-03-09 10:02:13 | INFO     | QC_Automation_Logger | [BATCH_20260309_100213_FD2FAD5D] Detected new file: test_3_failed.png | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-09 10:02:13 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-09 10:02:32 | ERROR    | QC_Automation_Logger | Validation Error during extraction: Google Cloud Vision API request failed: 503 DNS resolution failed for vision.googleapis.com:443: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.
+ -- 11001)
+2026-03-09 10:02:32 | ERROR    | QC_Automation_Logger | [BATCH_20260309_100213_FD2FAD5D] Extraction Failed.
+2026-03-09 10:02:32 | INFO     | QC_Automation_Logger | Moved test_3_failed.png to failed/BATCH_20260309_100213_FD2FAD5D_test_3_failed.png
+2026-03-09 10:02:58 | INFO     | QC_Automation_Logger | [BATCH_20260309_100258_11D31FDB] Detected new file: test_3_failed.png | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-09 10:02:58 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-09 10:03:02 | ERROR    | QC_Automation_Logger | Validation Error during extraction: Google Cloud Vision API request failed: 503 DNS resolution failed for vision.googleapis.com:443: UNAVAILABLE: getaddrinfo: WSA Error (No such host is known.
+ -- 11001)
+2026-03-09 10:03:02 | ERROR    | QC_Automation_Logger | [BATCH_20260309_100258_11D31FDB] Extraction Failed.
+2026-03-09 10:03:02 | INFO     | QC_Automation_Logger | Moved test_3_failed.png to failed/BATCH_20260309_100258_11D31FDB_test_3_failed.png
+2026-03-09 10:04:29 | INFO     | QC_Automation_Logger | [BATCH_20260309_100429_B3BF1224] Detected new file: test_3_failed.png | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-09 10:04:29 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-09 10:04:31 | ERROR    | QC_Automation_Logger | Validation Error during extraction: Google Cloud Vision API request failed: 503 failed to connect to all addresses; last error: UNKNOWN: ipv6:%5B2001:4860:4802:38::223%5D:443: tcp handshaker shutdown
+2026-03-09 10:04:31 | ERROR    | QC_Automation_Logger | [BATCH_20260309_100429_B3BF1224] Extraction Failed.
+2026-03-09 10:04:31 | INFO     | QC_Automation_Logger | Moved test_3_failed.png to failed/BATCH_20260309_100429_B3BF1224_test_3_failed.png
+2026-03-09 10:04:49 | INFO     | QC_Automation_Logger | [BATCH_20260309_100449_E83A7CF2] Detected new file: test_3_failed.xls | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-09 10:04:49 | INFO     | QC_Automation_Logger | Routing to Excel Parser...
+2026-03-09 10:04:49 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260309_100449_E83A7CF2_Report.xlsx
+2026-03-09 10:04:49 | INFO     | QC_Automation_Logger | Moved test_3_failed.xls to processed/BATCH_20260309_100449_E83A7CF2_test_3_failed.xls
+2026-03-09 10:04:49 | INFO     | QC_Automation_Logger | [BATCH_20260309_100449_E83A7CF2] Batch sequence complete. Final Decision: REJECTED
+2026-03-09 10:05:24 | INFO     | QC_Automation_Logger | [BATCH_20260309_100524_E8727E92] Detected new file: test_3_failed.png | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-09 10:05:24 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-09 10:05:27 | ERROR    | QC_Automation_Logger | Validation Error during extraction: Google Cloud Vision API request failed: 503 failed to connect to all addresses; last error: UNKNOWN: ipv6:%5B2001:4860:4802:38::223%5D:443: socket is null
+2026-03-09 10:05:27 | ERROR    | QC_Automation_Logger | [BATCH_20260309_100524_E8727E92] Extraction Failed.
+2026-03-09 10:05:27 | INFO     | QC_Automation_Logger | Moved test_3_failed.png to failed/BATCH_20260309_100524_E8727E92_test_3_failed.png
+2026-03-09 10:29:43 | INFO     | QC_Automation_Logger | [BATCH_20260309_102943_38D5B608] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-09 10:29:43 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-09 10:29:47 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260309_102943_38D5B608_Report.xlsx
+2026-03-09 10:29:47 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260309_102943_38D5B608_test_1.jpeg
+2026-03-09 10:29:47 | INFO     | QC_Automation_Logger | [BATCH_20260309_102943_38D5B608] Batch sequence complete. Final Decision: APPROVED
+2026-03-09 11:29:44 | INFO     | QC_Automation_Logger | [BATCH_20260309_112944_0EB21025] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-09 11:29:44 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-09 11:29:47 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260309_112944_0EB21025_Report.xlsx
+2026-03-09 11:29:47 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260309_112944_0EB21025_test_1.jpeg
+2026-03-09 11:29:47 | INFO     | QC_Automation_Logger | [BATCH_20260309_112944_0EB21025] Batch sequence complete. Final Decision: APPROVED
+2026-03-09 11:31:25 | INFO     | QC_Automation_Logger | [BATCH_20260309_113125_35197CA5] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-09 11:31:25 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-09 11:31:31 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260309_113125_35197CA5_Report.xlsx
+2026-03-09 11:31:31 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260309_113125_35197CA5_test_1.jpeg
+2026-03-09 11:31:31 | INFO     | QC_Automation_Logger | [BATCH_20260309_113125_35197CA5] Batch sequence complete. Final Decision: APPROVED

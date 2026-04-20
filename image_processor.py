@@ -7,16 +7,134 @@ for Cloud Vision's deep learning models.
 import cv2
 import numpy as np
 import logging
+from pathlib import Path
 
 from config import (
     IMG_CROP_TOP, IMG_CROP_BOTTOM, IMG_CROP_LEFT, IMG_CROP_RIGHT,
     IMG_DESKEW_MIN_ANGLE, IMG_DESKEW_MAX_ANGLE, IMG_PERSPECTIVE_MIN_AREA,
     IMG_DENOISE_H, IMG_CLAHE_CLIP, IMG_CLAHE_GRID,
     IMG_SHARPEN_WEIGHT, IMG_SHARPEN_BLUR_WEIGHT,
+    ENABLE_YOLO_TABLE_CROP, YOLO_TABLE_MODEL_PATH,
+    YOLO_TABLE_CONFIDENCE, YOLO_TABLE_IOU, YOLO_TABLE_CLASS_ID,
+    YOLO_DEBUG_SAVE_IMAGE, DEBUG_DIR,
 )
 
 
 class ImageProcessor:
+
+    _yolo_model = None
+    _yolo_load_attempted = False
+
+    @staticmethod
+    def _get_yolo_model():
+        """
+        Lazily load a YOLO detector if enabled and model file exists.
+        Returns None when unavailable, so pipeline can safely fall back.
+        """
+        if not ENABLE_YOLO_TABLE_CROP:
+            return None
+
+        if ImageProcessor._yolo_load_attempted:
+            return ImageProcessor._yolo_model
+
+        ImageProcessor._yolo_load_attempted = True
+
+        if not YOLO_TABLE_MODEL_PATH.exists():
+            logging.warning(
+                f"YOLO table crop enabled, but model file not found at {YOLO_TABLE_MODEL_PATH}. "
+                "Falling back to heuristic crop."
+            )
+            return None
+
+        try:
+            from ultralytics import YOLO
+            ImageProcessor._yolo_model = YOLO(str(YOLO_TABLE_MODEL_PATH))
+            logging.info(f"Loaded YOLO table detector from {YOLO_TABLE_MODEL_PATH}")
+        except Exception as e:
+            logging.warning(f"Could not load YOLO table detector: {e}. Falling back to heuristic crop.")
+            ImageProcessor._yolo_model = None
+
+        return ImageProcessor._yolo_model
+
+    @staticmethod
+    def _detect_table_roi(img: np.ndarray):
+        """
+        Detect table region with YOLO and return (x1, y1, x2, y2) in image coords.
+        Returns None when detection is unavailable or no confident box is found.
+        """
+        model = ImageProcessor._get_yolo_model()
+        if model is None:
+            return None
+
+        try:
+            kwargs = {
+                "conf": YOLO_TABLE_CONFIDENCE,
+                "iou": YOLO_TABLE_IOU,
+                "verbose": False,
+            }
+            if YOLO_TABLE_CLASS_ID is not None:
+                kwargs["classes"] = [int(YOLO_TABLE_CLASS_ID)]
+
+            result = model.predict(source=img, **kwargs)[0]
+            if result.boxes is None or len(result.boxes) == 0:
+                return None
+
+            # Pick the highest-confidence box.
+            conf_tensor = result.boxes.conf
+            best_idx = int(conf_tensor.argmax().item())
+            xyxy = result.boxes.xyxy[best_idx].tolist()
+            x1, y1, x2, y2 = [int(v) for v in xyxy]
+
+            h, w = img.shape[:2]
+            x1 = max(0, min(x1, w - 1))
+            x2 = max(1, min(x2, w))
+            y1 = max(0, min(y1, h - 1))
+            y2 = max(1, min(y2, h))
+
+            if x2 - x1 < 20 or y2 - y1 < 20:
+                return None
+
+            return x1, y1, x2, y2
+        except Exception as e:
+            logging.warning(f"YOLO table detection failed: {e}. Falling back to heuristic crop.")
+            return None
+
+    @staticmethod
+    def _write_crop_debug_image(filepath: str, img: np.ndarray, roi, source_label: str):
+        """
+        Save an annotated debug image showing the crop region and source path
+        (YOLO vs heuristic fallback) for quick visual verification.
+        """
+        if not YOLO_DEBUG_SAVE_IMAGE:
+            return
+
+        try:
+            x1, y1, x2, y2 = roi
+            overlay = img.copy()
+            color = (0, 200, 0) if source_label == "YOLO" else (0, 165, 255)
+            cv2.rectangle(overlay, (x1, y1), (x2, y2), color, 3)
+            label = f"{source_label} crop"
+            cv2.putText(
+                overlay,
+                label,
+                (x1, max(20, y1 - 10)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                color,
+                2,
+                cv2.LINE_AA,
+            )
+
+            stem = Path(filepath).stem
+            out_name = f"{stem}_crop_debug.jpg"
+            out_path = DEBUG_DIR / out_name
+            ok = cv2.imwrite(str(out_path), overlay)
+            if ok:
+                logging.info(f"Saved crop debug image: {out_path}")
+            else:
+                logging.warning(f"Failed to save crop debug image: {out_path}")
+        except Exception as e:
+            logging.warning(f"Could not write crop debug image: {e}")
 
     # ── Phone photo of monitor ──────────────────────────────────────────
     @staticmethod
@@ -35,9 +153,23 @@ class ImageProcessor:
 
         h, w = img.shape[:2]
 
-        # 1. Crop to the data table area (bottom ~60%) to remove toolbars & background
-        cropped = img[int(h * IMG_CROP_TOP):int(h * IMG_CROP_BOTTOM), int(w * IMG_CROP_LEFT):int(w * IMG_CROP_RIGHT)]
-        logging.info(f"Cropped from {img.shape} to {cropped.shape}")
+        # 1. Crop to table region.
+        # Preferred path: YOLO table detector (if enabled and available).
+        # Fallback path: existing heuristic crop.
+        roi = ImageProcessor._detect_table_roi(img)
+        if roi is not None:
+            x1, y1, x2, y2 = roi
+            cropped = img[y1:y2, x1:x2]
+            logging.info(f"YOLO crop applied: ({x1}, {y1})-({x2}, {y2}), shape={cropped.shape}")
+            ImageProcessor._write_crop_debug_image(filepath, img, roi, "YOLO")
+        else:
+            hx1 = int(w * IMG_CROP_LEFT)
+            hy1 = int(h * IMG_CROP_TOP)
+            hx2 = int(w * IMG_CROP_RIGHT)
+            hy2 = int(h * IMG_CROP_BOTTOM)
+            cropped = img[hy1:hy2, hx1:hx2]
+            logging.info(f"Heuristic crop from {img.shape} to {cropped.shape}")
+            ImageProcessor._write_crop_debug_image(filepath, img, (hx1, hy1, hx2, hy2), "HEURISTIC")
 
         # 2. Deskew — straighten rotated photos
         cropped = ImageProcessor._deskew(cropped)

@@ -1,0 +1,106 @@
+2026-03-07 00:33:06 | INFO     | QC_Automation_Logger | QC Automation System Started.
+2026-03-07 00:34:10 | INFO     | QC_Automation_Logger | [BATCH_20260307_003410_55FC88F2] Detected new file: WhatsApp Image 2026-03-06 at 10.02.05 PM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 00:34:10 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-07 00:34:15 | ERROR    | QC_Automation_Logger | [BATCH_20260307_003410_55FC88F2] Hard Validation Failed: Row structure mismatch: Expected 16 bus bars, got 7 rows.
+2026-03-07 00:34:15 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-06 at 10.02.05 PM.jpeg to failed/BATCH_20260307_003410_55FC88F2_WhatsApp_Image_2026-03-06_at_10.02.05_PM.jpeg
+2026-03-07 00:38:26 | INFO     | QC_Automation_Logger | [BATCH_20260307_003826_FD8CC02F] Detected new file: WhatsApp Image 2026-03-06 at 10.04.20 PM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 00:38:26 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-07 00:38:27 | ERROR    | QC_Automation_Logger | [BATCH_20260307_003826_FD8CC02F] Hard Validation Failed: Row structure mismatch: Expected 16 bus bars, got 9 rows.
+2026-03-07 00:38:27 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-06 at 10.04.20 PM.jpeg to failed/BATCH_20260307_003826_FD8CC02F_WhatsApp_Image_2026-03-06_at_10.04.20_PM.jpeg
+2026-03-07 00:48:34 | INFO     | QC_Automation_Logger | [BATCH_20260307_004834_8565A5F8] Test message | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 00:48:34 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_001_Report.xlsx
+2026-03-07 00:48:34 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_002_Report.xlsx
+2026-03-07 00:48:34 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_SHEETS_Report.xlsx
+2026-03-07 00:48:34 | ERROR    | QC_Automation_Logger | Unsupported file format: .pdf for test.pdf
+2026-03-07 00:48:34 | ERROR    | QC_Automation_Logger | File huge.xlsx exceeds size limit (52428801 bytes > 52428800 bytes)
+2026-03-07 00:48:34 | INFO     | QC_Automation_Logger | Moved test.xlsx to processed/BATCH_TEST_test.xlsx
+2026-03-07 00:49:40 | INFO     | QC_Automation_Logger | [BATCH_20260307_004940_F24E5BB0] Test message | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 00:49:40 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_001_Report.xlsx
+2026-03-07 00:49:40 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_002_Report.xlsx
+2026-03-07 00:49:40 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_SHEETS_Report.xlsx
+2026-03-07 00:49:40 | ERROR    | QC_Automation_Logger | Unsupported file format: .pdf for test.pdf
+2026-03-07 00:49:40 | ERROR    | QC_Automation_Logger | File huge.xlsx exceeds size limit (52428801 bytes > 52428800 bytes)
+2026-03-07 00:49:40 | INFO     | QC_Automation_Logger | Moved test.xlsx to processed/BATCH_TEST_test.xlsx
+2026-03-07 00:49:40 | INFO     | QC_Automation_Logger | Moved bad.xlsx to failed/BATCH_FAIL_bad.xlsx
+2026-03-07 00:49:40 | INFO     | QC_Automation_Logger | Report generated successfully: INT_TEST_001_Report.xlsx
+2026-03-07 00:49:41 | INFO     | QC_Automation_Logger | Report generated successfully: INT_TEST_002_Report.xlsx
+2026-03-07 00:50:16 | INFO     | QC_Automation_Logger | [BATCH_20260307_005016_379241F6] Test message | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 00:50:16 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_001_Report.xlsx
+2026-03-07 00:50:16 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_BATCH_002_Report.xlsx
+2026-03-07 00:50:16 | INFO     | QC_Automation_Logger | Report generated successfully: TEST_SHEETS_Report.xlsx
+2026-03-07 00:50:16 | ERROR    | QC_Automation_Logger | Unsupported file format: .pdf for test.pdf
+2026-03-07 00:50:16 | ERROR    | QC_Automation_Logger | File huge.xlsx exceeds size limit (52428801 bytes > 52428800 bytes)
+2026-03-07 00:50:16 | INFO     | QC_Automation_Logger | Moved test.xlsx to processed/BATCH_TEST_test.xlsx
+2026-03-07 00:50:16 | INFO     | QC_Automation_Logger | Moved bad.xlsx to failed/BATCH_FAIL_bad.xlsx
+2026-03-07 00:50:16 | INFO     | QC_Automation_Logger | Report generated successfully: INT_TEST_001_Report.xlsx
+2026-03-07 00:50:16 | INFO     | QC_Automation_Logger | Report generated successfully: INT_TEST_002_Report.xlsx
+2026-03-07 00:50:56 | INFO     | QC_Automation_Logger | [BATCH_20260307_005056_6B3A8720] Detected new file: WhatsApp Image 2026-03-06 at 10.04.20 PM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 00:50:56 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-07 00:50:57 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260307_005056_6B3A8720_Report.xlsx
+2026-03-07 00:50:57 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-06 at 10.04.20 PM.jpeg to processed/BATCH_20260307_005056_6B3A8720_WhatsApp_Image_2026-03-06_at_10.04.20_PM.jpeg
+2026-03-07 00:50:57 | INFO     | QC_Automation_Logger | [BATCH_20260307_005056_6B3A8720] Batch sequence complete. Final Decision: APPROVED
+2026-03-07 00:53:44 | INFO     | QC_Automation_Logger | [BATCH_20260307_005344_A15A2BAE] Detected new file: WhatsApp Image 2026-03-06 at 10.05.11 PM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 00:53:44 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-07 00:53:45 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260307_005344_A15A2BAE_Report.xlsx
+2026-03-07 00:53:45 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-06 at 10.05.11 PM.jpeg to processed/BATCH_20260307_005344_A15A2BAE_WhatsApp_Image_2026-03-06_at_10.05.11_PM.jpeg
+2026-03-07 00:53:45 | INFO     | QC_Automation_Logger | [BATCH_20260307_005344_A15A2BAE] Batch sequence complete. Final Decision: APPROVED
+2026-03-07 01:01:53 | INFO     | QC_Automation_Logger | [BATCH_20260307_010153_B2B17E4C] Detected new file: WhatsApp Image 2026-03-06 at 10.05.11 PM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 01:01:53 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-07 01:01:55 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260307_010153_B2B17E4C_Report.xlsx
+2026-03-07 01:01:55 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-06 at 10.05.11 PM.jpeg to processed/BATCH_20260307_010153_B2B17E4C_WhatsApp_Image_2026-03-06_at_10.05.11_PM.jpeg
+2026-03-07 01:01:55 | INFO     | QC_Automation_Logger | [BATCH_20260307_010153_B2B17E4C] Batch sequence complete. Final Decision: APPROVED
+2026-03-07 01:03:30 | INFO     | QC_Automation_Logger | [BATCH_20260307_010330_0E1D2066] Detected new file: WhatsApp Image 2026-03-07 at 1.02.50 AM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 01:03:30 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-07 01:03:32 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260307_010330_0E1D2066_Report.xlsx
+2026-03-07 01:03:32 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-07 at 1.02.50 AM.jpeg to processed/BATCH_20260307_010330_0E1D2066_WhatsApp_Image_2026-03-07_at_1.02.50_AM.jpeg
+2026-03-07 01:03:32 | INFO     | QC_Automation_Logger | [BATCH_20260307_010330_0E1D2066] Batch sequence complete. Final Decision: APPROVED
+2026-03-07 01:06:28 | INFO     | QC_Automation_Logger | [BATCH_20260307_010628_25773CF1] Detected new file: WhatsApp Image 2026-03-06 at 10.04.46 PM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 01:06:28 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-07 01:06:29 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260307_010628_25773CF1_Report.xlsx
+2026-03-07 01:06:29 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-06 at 10.04.46 PM.jpeg to processed/BATCH_20260307_010628_25773CF1_WhatsApp_Image_2026-03-06_at_10.04.46_PM.jpeg
+2026-03-07 01:06:29 | INFO     | QC_Automation_Logger | [BATCH_20260307_010628_25773CF1] Batch sequence complete. Final Decision: APPROVED
+2026-03-07 01:11:07 | INFO     | QC_Automation_Logger | [BATCH_20260307_011107_DC197AC4] Detected new file: WhatsApp Image 2026-03-07 at 1.10.32 AM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 01:11:07 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-07 01:11:09 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260307_011107_DC197AC4_Report.xlsx
+2026-03-07 01:11:09 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-07 at 1.10.32 AM.jpeg to processed/BATCH_20260307_011107_DC197AC4_WhatsApp_Image_2026-03-07_at_1.10.32_AM.jpeg
+2026-03-07 01:11:09 | INFO     | QC_Automation_Logger | [BATCH_20260307_011107_DC197AC4] Batch sequence complete. Final Decision: APPROVED
+2026-03-07 08:45:37 | INFO     | QC_Automation_Logger | [BATCH_20260307_084537_7A5F161B] Detected new file: WhatsApp Image 2026-03-07 at 1.10.32 AM.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 08:45:37 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-07 08:45:52 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260307_084537_7A5F161B_Report.xlsx
+2026-03-07 08:45:52 | INFO     | QC_Automation_Logger | Moved WhatsApp Image 2026-03-07 at 1.10.32 AM.jpeg to processed/BATCH_20260307_084537_7A5F161B_WhatsApp_Image_2026-03-07_at_1.10.32_AM.jpeg
+2026-03-07 08:45:52 | INFO     | QC_Automation_Logger | [BATCH_20260307_084537_7A5F161B] Batch sequence complete. Final Decision: APPROVED
+2026-03-07 08:51:12 | INFO     | QC_Automation_Logger | [BATCH_20260307_085112_EA1584F3] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 08:51:12 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-07 08:51:16 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260307_085112_EA1584F3_Report.xlsx
+2026-03-07 08:51:16 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260307_085112_EA1584F3_test_1.jpeg
+2026-03-07 08:51:16 | INFO     | QC_Automation_Logger | [BATCH_20260307_085112_EA1584F3] Batch sequence complete. Final Decision: APPROVED
+2026-03-07 09:02:57 | INFO     | QC_Automation_Logger | [BATCH_20260307_090257_65349E04] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 09:02:57 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-07 09:02:59 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260307_090257_65349E04_Report.xlsx
+2026-03-07 09:02:59 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260307_090257_65349E04_test_1.jpeg
+2026-03-07 09:02:59 | INFO     | QC_Automation_Logger | [BATCH_20260307_090257_65349E04] Batch sequence complete. Final Decision: APPROVED
+2026-03-07 09:06:15 | INFO     | QC_Automation_Logger | [BATCH_20260307_090615_9705AA08] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 09:06:15 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-07 09:06:17 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260307_090615_9705AA08_Report.xlsx
+2026-03-07 09:06:17 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260307_090615_9705AA08_test_1.jpeg
+2026-03-07 09:06:17 | INFO     | QC_Automation_Logger | [BATCH_20260307_090615_9705AA08] Batch sequence complete. Final Decision: APPROVED
+2026-03-07 09:07:53 | INFO     | QC_Automation_Logger | [BATCH_20260307_090753_697EFFC9] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 09:07:53 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-07 09:07:58 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260307_090753_697EFFC9_Report.xlsx
+2026-03-07 09:07:58 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260307_090753_697EFFC9_test_1.jpeg
+2026-03-07 09:07:58 | INFO     | QC_Automation_Logger | [BATCH_20260307_090753_697EFFC9] Batch sequence complete. Final Decision: APPROVED
+2026-03-07 09:32:20 | INFO     | QC_Automation_Logger | [BATCH_20260307_093220_4FA8E341] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 09:32:20 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-07 09:32:22 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260307_093220_4FA8E341_Report.xlsx
+2026-03-07 09:32:22 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260307_093220_4FA8E341_test_1.jpeg
+2026-03-07 09:32:22 | INFO     | QC_Automation_Logger | [BATCH_20260307_093220_4FA8E341] Batch sequence complete. Final Decision: APPROVED
+2026-03-07 09:33:52 | INFO     | QC_Automation_Logger | [BATCH_20260307_093352_614A60E6] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 09:33:52 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-07 09:33:54 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260307_093352_614A60E6_Report.xlsx
+2026-03-07 09:33:54 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260307_093352_614A60E6_test_1.jpeg
+2026-03-07 09:33:54 | INFO     | QC_Automation_Logger | [BATCH_20260307_093352_614A60E6] Batch sequence complete. Final Decision: APPROVED
+2026-03-07 09:34:46 | INFO     | QC_Automation_Logger | [BATCH_20260307_093446_06E18392] Detected new file: test_1.jpeg | Operator: AUTO_SYSTEM | Machine: SYS_01
+2026-03-07 09:34:46 | INFO     | QC_Automation_Logger | Routing to OpenCV & OCR Engine...
+2026-03-07 09:34:48 | INFO     | QC_Automation_Logger | Report generated successfully: BATCH_20260307_093446_06E18392_Report.xlsx
+2026-03-07 09:34:48 | INFO     | QC_Automation_Logger | Moved test_1.jpeg to processed/BATCH_20260307_093446_06E18392_test_1.jpeg
+2026-03-07 09:34:48 | INFO     | QC_Automation_Logger | [BATCH_20260307_093446_06E18392] Batch sequence complete. Final Decision: APPROVED

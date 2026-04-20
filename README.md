@@ -591,7 +591,10 @@ The following libraries are used (install via requirements.txt):
 - **opencv-python (cv2)** - Image preprocessing
 - **google-cloud-vision** - OCR text extraction
 - **openpyxl** - Excel file creation and parsing
-- **streamlit** - Web dashboard interface
+- **fastapi** - Web backend for dashboard APIs
+- **uvicorn** - ASGI server for FastAPI app
+- **python-multipart** - File upload handling for FastAPI forms
+- **streamlit** - Legacy dashboard interface (optional)
 - **plotly** - Interactive charts and visualizations
 - **Pillow (PIL)** - Image loading and manipulation
 
@@ -601,13 +604,13 @@ The following libraries are used (install via requirements.txt):
 
 ### Method 1: Web Dashboard (Recommended)
 
-Launch the Streamlit dashboard for interactive use:
+Launch the FastAPI dashboard for interactive use:
 
 ```bash
-streamlit run dashboard.py
+uvicorn web_app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-The dashboard will open in your browser (default: http://localhost:8501)
+The dashboard will open in your browser at http://localhost:8000
 
 **Dashboard Features**:
 - 📤 **Upload Tab**: Drag and drop files for instant processing
@@ -615,6 +618,14 @@ The dashboard will open in your browser (default: http://localhost:8501)
 - 📈 **Analytics Tab**: Visualize quality trends
 - 👁️ **Monitoring Tab**: Real-time system status
 - ⚙️ **Config Tab**: View current configuration
+
+### Method 1b: Legacy Streamlit Dashboard (Optional)
+
+If needed for backward compatibility:
+
+```bash
+streamlit run dashboard.py
+```
 
 ### Method 2: Command-Line Processing
 

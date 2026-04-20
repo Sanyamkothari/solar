@@ -105,11 +105,14 @@ class QualityEvaluator:
                 "rule_B": {
                     "passed": rule_b_pass,
                     "failures_per_bar": dict_b, # dict map row_index: count
+                    "allowed_per_bar": MAX_RULE_B_PER_BAR,
                 },
                 "rule_C": {
                     "passed": rule_c_pass,
                     "total_failures": total_c,
-                    "failures_per_bar": dict_c # dict map row_index: count
+                    "failures_per_bar": dict_c, # dict map row_index: count
+                    "allowed_total": scaled_max_c_total,
+                    "allowed_per_bar": MAX_RULE_C_PER_BAR,
                 }
             }
         }
