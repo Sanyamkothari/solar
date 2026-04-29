@@ -64,12 +64,25 @@ class LocalLLMEngine:
         similar_batches = rag_context.get("similar_batches", []) if rag_context else []
         summary = rag_context.get("context_summary", "No similar history available.") if rag_context else "No similar history available."
         decision_pattern = rag_context.get("decision_pattern", {}) if rag_context else {}
+        feedback_cases = rag_context.get("feedback_cases", []) if rag_context else []
 
         similar_lines: List[str] = []
         for batch_hist_id, similarity, metadata in similar_batches:
+            root_cause = metadata.get("root_cause", "")
+            operator_feedback = metadata.get("operator_feedback", "")
+            feedback_note = ""
+            if root_cause or operator_feedback:
+                feedback_note = f" | root_cause={root_cause or 'N/A'} | feedback={operator_feedback or 'N/A'}"
             similar_lines.append(
                 f"- {batch_hist_id} | decision={metadata.get('decision', 'UNKNOWN')} | "
-                f"shift={metadata.get('shift', 'UNKNOWN')} | similarity={similarity:.2%}"
+                f"shift={metadata.get('shift', 'UNKNOWN')} | similarity={similarity:.2%}{feedback_note}"
+            )
+
+        feedback_lines: List[str] = []
+        for case in feedback_cases:
+            feedback_lines.append(
+                f"- {case.get('batch_id', 'UNKNOWN')} | decision={case.get('decision', 'UNKNOWN')} | "
+                f"root_cause={case.get('root_cause', 'N/A')} | action={case.get('action_taken', 'N/A')}"
             )
 
         prompt = (
@@ -84,6 +97,7 @@ class LocalLLMEngine:
             f"Historical Context Summary:\n{summary}\n\n"
             f"Decision Pattern: {decision_pattern if decision_pattern else 'N/A'}\n\n"
             f"Similar Historical Batches:\n{chr(10).join(similar_lines) if similar_lines else 'None'}\n\n"
+            f"Historical Feedback Cases:\n{chr(10).join(feedback_lines) if feedback_lines else 'None'}\n\n"
             "Return the analysis in this exact format:\n"
             "SUMMARY: <1-2 sentence summary>\n"
             "LIKELY_CAUSES: <short list of likely root causes or 'Unknown'>\n"
@@ -95,6 +109,7 @@ class LocalLLMEngine:
     def _fallback_insight(self, batch_id: str, eval_report: Dict, rag_context: Dict) -> InsightResult:
         similar_batches = rag_context.get("similar_batches", []) if rag_context else []
         summary = rag_context.get("context_summary", "No similar historical cases found.") if rag_context else "No similar historical cases found."
+        feedback_cases = rag_context.get("feedback_cases", []) if rag_context else []
 
         top_match = None
         if similar_batches:
@@ -109,6 +124,9 @@ class LocalLLMEngine:
             f"{top_match or 'No sufficiently similar historical match was found.'} "
             f"{summary}"
         ).strip()
+
+        if feedback_cases:
+            summary_text = f"{summary_text} Historical feedback exists for {len(feedback_cases)} related cases."
 
         return InsightResult(
             enabled=self.enabled,

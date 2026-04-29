@@ -34,6 +34,9 @@ def process_file(filepath, excel_ref_path=None, steps_callback=None):
         "report_path": None,
         "verification_report": None,
         "matrix_source": None,
+        "rag_context": None,
+        "llm_insights": None,
+        "operator_feedback": None,
     }
 
     def add_step(name, status, detail=""):

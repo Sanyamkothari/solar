@@ -164,7 +164,7 @@ class ReportGenerator:
                 
                 # Similar cases table
                 header_row = 5
-                headers = ["Rank", "Batch ID", "Decision", "Similarity Score", "Shift"]
+                headers = ["Rank", "Batch ID", "Decision", "Similarity Score", "Shift", "Root Cause", "Operator Feedback"]
                 for c, h in enumerate(headers, start=1):
                     ws_rag.cell(row=header_row, column=c, value=h).font = Font(bold=True)
                     ws_rag.cell(row=header_row, column=c).fill = LIGHT_BLUE_FILL
@@ -177,6 +177,8 @@ class ReportGenerator:
                     sim_cell = ws_rag.cell(row=row, column=4, value=f"{similarity:.1%}")
                     sim_cell.number_format = '0%'
                     ws_rag.cell(row=row, column=5, value=metadata.get("shift", "UNKNOWN"))
+                    ws_rag.cell(row=row, column=6, value=metadata.get("root_cause", ""))
+                    ws_rag.cell(row=row, column=7, value=metadata.get("operator_feedback", ""))
                 
                 # Pattern analysis
                 decision_pattern = rag_context.get("decision_pattern", {})
@@ -185,6 +187,20 @@ class ReportGenerator:
                     ws_rag.cell(row=pattern_row, column=1, value="Decision Pattern Analysis:").font = Font(bold=True)
                     ws_rag.cell(row=pattern_row + 1, column=1, value=f"Similar cases in history: {decision_pattern.get('total_cases', 0)}")
                     ws_rag.cell(row=pattern_row + 2, column=1, value=f"Frequency in last 100 batches: {decision_pattern.get('frequency', 'N/A')}")
+
+                feedback_cases = rag_context.get("feedback_cases", [])
+                if feedback_cases:
+                    feedback_row = pattern_row + 4 if decision_pattern else header_row + len(similar_batches) + 3
+                    ws_rag.cell(row=feedback_row, column=1, value="Operator Feedback Cases:").font = Font(bold=True)
+                    feedback_headers = ["Batch ID", "Root Cause", "Operator Feedback", "Action Taken", "Reviewed By"]
+                    for c, header in enumerate(feedback_headers, start=1):
+                        ws_rag.cell(row=feedback_row + 1, column=c, value=header).font = Font(bold=True)
+                    for idx, case in enumerate(feedback_cases, start=feedback_row + 2):
+                        ws_rag.cell(row=idx, column=1, value=case.get("batch_id", ""))
+                        ws_rag.cell(row=idx, column=2, value=case.get("root_cause", ""))
+                        ws_rag.cell(row=idx, column=3, value=case.get("operator_feedback", ""))
+                        ws_rag.cell(row=idx, column=4, value=case.get("action_taken", ""))
+                        ws_rag.cell(row=idx, column=5, value=case.get("reviewed_by", ""))
             else:
                 ws_rag["A3"] = "No similar historical cases found in database."
                 ws_rag["A3"].font = Font(italic=True, color="808080")

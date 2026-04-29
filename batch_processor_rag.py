@@ -35,14 +35,18 @@ class BatchProcessorWithRAG:
         if self.rag_engine.enabled:
             # Retrieve before storing current batch to avoid self-matching.
             similar_batches = self.rag_engine.retrieve_similar_batches(eval_report)
+            similar_batches = self.rag_engine.enrich_similar_batches_with_feedback(similar_batches)
             decision = eval_report.get("decision", "UNKNOWN")
             decision_pattern = self.rag_engine.get_decision_pattern(decision)
             context_summary = self.rag_engine.generate_context_summary(similar_batches)
+
+            feedback_cases = self.rag_engine.history_db.get_feedback_cases(limit=5)
 
             rag_context = {
                 "similar_batches": similar_batches,
                 "context_summary": context_summary,
                 "decision_pattern": decision_pattern,
+                "feedback_cases": feedback_cases,
             }
             llm_insights = self.llm_engine.generate_insights(batch_id, eval_report, rag_context)
 
@@ -59,7 +63,20 @@ class BatchProcessorWithRAG:
                 "similar_batches": similar_batches,
                 "context_summary": context_summary,
                 "decision_pattern": decision_pattern,
+                "feedback_cases": [],
             }
+
+        operator_feedback = metadata.get("operator_feedback")
+        if operator_feedback and self.rag_engine.enabled:
+            feedback_payload = {
+                "root_cause": metadata.get("root_cause", ""),
+                "operator_feedback": operator_feedback,
+                "feedback_confidence": metadata.get("feedback_confidence", ""),
+                "reviewed_by": metadata.get("reviewed_by", ""),
+                "reviewed_at": metadata.get("reviewed_at", ""),
+                "action_taken": metadata.get("action_taken", ""),
+            }
+            self.rag_engine.record_operator_feedback(batch_id, feedback_payload)
 
         return {
             "batch_id": batch_id,

@@ -53,8 +53,23 @@ class BatchHistoryDB:
                 )
                 """
             )
+            self._ensure_columns(conn, {
+                "operator_feedback": "TEXT",
+                "feedback_confidence": "TEXT",
+                "reviewed_by": "TEXT",
+                "reviewed_at": "TEXT",
+                "action_taken": "TEXT",
+            })
             conn.commit()
         logger.info(f"Initialized batch history database at {self.db_path}")
+
+    def _ensure_columns(self, conn: sqlite3.Connection, columns: Dict[str, str]) -> None:
+        """Add missing columns for older databases without breaking schema."""
+        cursor = conn.execute("PRAGMA table_info(batch_history)")
+        existing = {row[1] for row in cursor.fetchall()}
+        for column_name, column_type in columns.items():
+            if column_name not in existing:
+                conn.execute(f"ALTER TABLE batch_history ADD COLUMN {column_name} {column_type}")
 
     def store_batch(
         self,
@@ -69,14 +84,30 @@ class BatchHistoryDB:
         if metadata is None:
             metadata = {}
 
+        existing = self.get_batch(batch_id)
+        if existing:
+            metadata = {
+                **{
+                    "root_cause": existing.get("root_cause", ""),
+                    "operator_feedback": existing.get("operator_feedback", ""),
+                    "feedback_confidence": existing.get("feedback_confidence", ""),
+                    "reviewed_by": existing.get("reviewed_by", ""),
+                    "reviewed_at": existing.get("reviewed_at", ""),
+                    "action_taken": existing.get("action_taken", ""),
+                },
+                **metadata,
+            }
+
         try:
             with sqlite3.connect(self.db_path) as conn:
                 conn.execute(
                     """
                     INSERT OR REPLACE INTO batch_history 
                     (batch_id, timestamp, decision, rule_a_passed, rule_b_passed, 
-                     rule_c_passed, matrix_json, shift, equipment_id, operator_notes)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     rule_c_passed, matrix_json, shift, equipment_id, operator_notes,
+                     root_cause, operator_feedback, feedback_confidence, reviewed_by,
+                     reviewed_at, action_taken)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         batch_id,
@@ -89,6 +120,12 @@ class BatchHistoryDB:
                         metadata.get("shift", "UNKNOWN"),
                         metadata.get("equipment_id", "UNKNOWN"),
                         metadata.get("operator_notes", ""),
+                        metadata.get("root_cause", ""),
+                        metadata.get("operator_feedback", ""),
+                        metadata.get("feedback_confidence", ""),
+                        metadata.get("reviewed_by", ""),
+                        metadata.get("reviewed_at", ""),
+                        metadata.get("action_taken", ""),
                     ),
                 )
                 conn.commit()
@@ -96,12 +133,58 @@ class BatchHistoryDB:
         except Exception as e:
             logger.warning(f"Failed to store batch {batch_id} in history: {e}")
 
+    def update_feedback(
+        self,
+        batch_id: str,
+        feedback: Dict,
+    ) -> bool:
+        """Attach operator feedback or root cause notes to an existing batch."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.execute(
+                    """
+                    UPDATE batch_history
+                    SET root_cause = ?,
+                        operator_feedback = ?,
+                        feedback_confidence = ?,
+                        reviewed_by = ?,
+                        reviewed_at = ?,
+                        action_taken = ?
+                    WHERE batch_id = ?
+                    """,
+                    (
+                        feedback.get("root_cause", ""),
+                        feedback.get("operator_feedback", ""),
+                        feedback.get("feedback_confidence", ""),
+                        feedback.get("reviewed_by", ""),
+                        feedback.get("reviewed_at", str(datetime.now())),
+                        feedback.get("action_taken", ""),
+                        batch_id,
+                    ),
+                )
+                conn.commit()
+                updated = cursor.rowcount > 0
+                if updated:
+                    logger.info(f"Stored operator feedback for batch {batch_id}")
+                return updated
+        except Exception as e:
+            logger.warning(f"Failed to update feedback for batch {batch_id}: {e}")
+        return False
+
     def get_batch(self, batch_id: str) -> Optional[Dict]:
         """Retrieve batch record."""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.execute(
-                    "SELECT * FROM batch_history WHERE batch_id = ?", (batch_id,)
+                    """
+                    SELECT batch_id, timestamp, decision, rule_a_passed, rule_b_passed,
+                           rule_c_passed, matrix_json, shift, equipment_id, operator_notes,
+                           root_cause, operator_feedback, feedback_confidence, reviewed_by,
+                           reviewed_at, action_taken
+                    FROM batch_history
+                    WHERE batch_id = ?
+                    """,
+                    (batch_id,),
                 )
                 row = cursor.fetchone()
                 if row:
@@ -116,17 +199,69 @@ class BatchHistoryDB:
                         "shift": row[7],
                         "equipment_id": row[8],
                         "operator_notes": row[9],
+                        "root_cause": row[10] if len(row) > 10 else "",
+                        "operator_feedback": row[11] if len(row) > 11 else "",
+                        "feedback_confidence": row[12] if len(row) > 12 else "",
+                        "reviewed_by": row[13] if len(row) > 13 else "",
+                        "reviewed_at": row[14] if len(row) > 14 else "",
+                        "action_taken": row[15] if len(row) > 15 else "",
                     }
         except Exception as e:
             logger.warning(f"Failed to retrieve batch {batch_id}: {e}")
         return None
+
+    def get_feedback_cases(self, limit: int = 20) -> List[Dict]:
+        """Retrieve batches that have operator feedback or root-cause annotations."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.execute(
+                    """
+                    SELECT batch_id, timestamp, decision, shift, equipment_id,
+                           operator_notes, root_cause, operator_feedback,
+                           feedback_confidence, reviewed_by, reviewed_at, action_taken
+                    FROM batch_history
+                    WHERE COALESCE(root_cause, '') != '' OR COALESCE(operator_feedback, '') != ''
+                    ORDER BY created_at DESC
+                    LIMIT ?
+                    """,
+                    (limit,),
+                )
+                rows = cursor.fetchall()
+                return [
+                    {
+                        "batch_id": row[0],
+                        "timestamp": row[1],
+                        "decision": row[2],
+                        "shift": row[3],
+                        "equipment_id": row[4],
+                        "operator_notes": row[5],
+                        "root_cause": row[6],
+                        "operator_feedback": row[7],
+                        "feedback_confidence": row[8],
+                        "reviewed_by": row[9],
+                        "reviewed_at": row[10],
+                        "action_taken": row[11],
+                    }
+                    for row in rows
+                ]
+        except Exception as e:
+            logger.warning(f"Failed to retrieve feedback cases: {e}")
+        return []
 
     def get_all_batches(self, limit: int = 100) -> List[Dict]:
         """Retrieve all batches (limited)."""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.execute(
-                    "SELECT * FROM batch_history ORDER BY created_at DESC LIMIT ?",
+                    """
+                    SELECT batch_id, timestamp, decision, rule_a_passed, rule_b_passed,
+                           rule_c_passed, matrix_json, shift, equipment_id, operator_notes,
+                           root_cause, operator_feedback, feedback_confidence, reviewed_by,
+                           reviewed_at, action_taken
+                    FROM batch_history
+                    ORDER BY created_at DESC
+                    LIMIT ?
+                    """,
                     (limit,),
                 )
                 rows = cursor.fetchall()
@@ -136,6 +271,8 @@ class BatchHistoryDB:
                         "timestamp": row[1],
                         "decision": row[2],
                         "shift": row[7],
+                        "root_cause": row[10],
+                        "operator_feedback": row[11],
                     }
                     for row in rows
                 ]
@@ -315,3 +452,28 @@ class RAGEngine:
             logger.warning(f"Failed to analyze decision pattern: {e}")
 
         return {}
+
+    def record_operator_feedback(self, batch_id: str, feedback: Dict) -> bool:
+        """Persist operator feedback and return True when successfully stored."""
+        if not self.enabled:
+            return False
+        return self.history_db.update_feedback(batch_id, feedback)
+
+    def enrich_similar_batches_with_feedback(self, similar_batches: List[Tuple[str, float, Dict]]) -> List[Tuple[str, float, Dict]]:
+        """Attach operator feedback and root-cause annotations to similar batches."""
+        enriched = []
+        for batch_id, similarity, metadata in similar_batches:
+            batch_record = self.history_db.get_batch(batch_id)
+            combined_metadata = dict(metadata or {})
+            if batch_record:
+                combined_metadata.update(
+                    {
+                        "root_cause": batch_record.get("root_cause", ""),
+                        "operator_feedback": batch_record.get("operator_feedback", ""),
+                        "feedback_confidence": batch_record.get("feedback_confidence", ""),
+                        "reviewed_by": batch_record.get("reviewed_by", ""),
+                        "action_taken": batch_record.get("action_taken", ""),
+                    }
+                )
+            enriched.append((batch_id, similarity, combined_metadata))
+        return enriched
