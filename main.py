@@ -11,8 +11,11 @@ from quality_rules import QualityEvaluator
 from report_generator import ReportGenerator
 from batch_manager import BatchManager
 from cross_verifier import CrossVerifier
+from batch_processor_rag import BatchProcessorWithRAG
 from logger import logger
 from config import CATEGORY_DATA_ERROR, CATEGORY_VERIFICATION_FAILED, CATEGORY_MANUAL_REVIEW
+
+rag_processor = BatchProcessorWithRAG()
 
 def process_file(filepath, excel_ref_path=None, steps_callback=None):
     """
@@ -157,6 +160,23 @@ def process_file(filepath, excel_ref_path=None, steps_callback=None):
     dec_icon = "✅" if decision == "APPROVED" else "❌"
     add_step(f"🏁 Final Decision", f"{dec_icon} {decision}", f"Batch {batch.batch_id}")
 
+    # STEP 6b: Phase 2 RAG + LLM enrichment
+    add_step("🧠 RAG Enrichment", "⏳ Running", "Retrieving similar historical cases and AI insights...")
+    rag_result = rag_processor.process_batch_with_rag(
+        batch_id=batch.batch_id,
+        eval_report=eval_report,
+        matrix=matrix,
+        metadata={
+            "timestamp": batch.batch_id,
+            "source_file": filepath.name,
+        },
+    )
+    rag_context = rag_result.get("rag_context")
+    llm_insights = rag_result.get("llm_insights")
+    result["rag_context"] = rag_context
+    result["llm_insights"] = llm_insights
+    add_step("🧠 RAG Enrichment", "✅ PASS", rag_context.get("context_summary", "RAG complete."))
+
     # STEP 7: Report Generation
     add_step("📊 Report Generation", "⏳ Running", "Writing Excel report...")
     report_path = ReportGenerator.generate_report(
@@ -165,6 +185,8 @@ def process_file(filepath, excel_ref_path=None, steps_callback=None):
         eval_report=eval_report,
         verification_report=result.get("verification_report"),
         matrix_source=result.get("matrix_source"),
+        rag_context=rag_context,
+        llm_insights=llm_insights,
     )
     result["report_path"] = str(report_path)
     add_step("📊 Report Generation", "✅ PASS", f"Saved: {report_path.name}")

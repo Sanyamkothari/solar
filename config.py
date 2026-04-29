@@ -102,3 +102,12 @@ RAG_CHROMA_PATH = BASE_DIR / "models" / "chroma_db"
 RAG_EMBEDDING_MODEL = "all-MiniLM-L6-v2"  # Fast, ~50MB model
 RAG_TOP_K_SIMILAR = 3  # Retrieve top 3 similar historical batches
 RAG_SIMILARITY_THRESHOLD = 0.6  # Min similarity score to consider a match
+
+# Phase 2: Local LLM summary generation
+ENABLE_RAG_LLM_SUMMARY = True
+LLM_PROVIDER = "ollama"
+OLLAMA_BASE_URL = "http://localhost:11434"
+OLLAMA_MODEL_NAME = "llama3.1:8b"
+LLM_MAX_TOKENS = 512
+LLM_TEMPERATURE = 0.2
+LLM_TIMEOUT_SECONDS = 30

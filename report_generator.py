@@ -26,7 +26,7 @@ class ReportGenerator:
     @staticmethod
     def generate_report(batch_id: str, matrix: List[List[float]], eval_report: Dict,
                         verification_report: Optional[Dict] = None, matrix_source: Optional[str] = None,
-                        rag_context: Optional[Dict] = None) -> Path:
+                            rag_context: Optional[Dict] = None, llm_insights: Optional[Dict] = None) -> Path:
         """
         Generates the final Excel file.
         Includes sheets:
@@ -188,6 +188,31 @@ class ReportGenerator:
             else:
                 ws_rag["A3"] = "No similar historical cases found in database."
                 ws_rag["A3"].font = Font(italic=True, color="808080")
+
+        # Sheet 5: AI Insights (local LLM summary)
+        if llm_insights:
+            ws_ai = wb.create_sheet(title="AI Insights")
+            ws_ai["A1"] = "AI-Powered QC Insights"
+            ws_ai["A1"].font = Font(bold=True, size=12)
+
+            insight_rows = [
+                ("Provider", llm_insights.get("provider", "UNKNOWN")),
+                ("Model", llm_insights.get("model", "UNKNOWN")),
+                ("Used Fallback", str(llm_insights.get("used_fallback", False))),
+                ("Confidence", llm_insights.get("confidence", "UNKNOWN")),
+                ("Summary", llm_insights.get("summary", "")),
+                ("Likely Causes", llm_insights.get("likely_causes", "")),
+                ("Recommended Actions", llm_insights.get("recommended_actions", "")),
+            ]
+            for row_idx, (label, value) in enumerate(insight_rows, start=3):
+                ws_ai.cell(row=row_idx, column=1, value=label).font = Font(bold=True)
+                ws_ai.cell(row=row_idx, column=2, value=value)
+
+            raw_response = llm_insights.get("raw_response")
+            if raw_response:
+                raw_row = len(insight_rows) + 5
+                ws_ai.cell(row=raw_row, column=1, value="Raw Model Response").font = Font(bold=True)
+                ws_ai.cell(row=raw_row + 1, column=1, value=raw_response)
                 
         # Save output
         out_path = OUTPUT_DIR / f"{batch_id}_Report.xlsx"
