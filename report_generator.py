@@ -11,7 +11,8 @@ from config import (
     OUTPUT_DIR,
     RULE_A_THRESHOLD,
     RULE_B_THRESHOLD,
-    RULE_C_THRESHOLD
+    RULE_C_THRESHOLD,
+    ENABLE_RAG_CONTEXT,
 )
 from logger import logger
 
@@ -19,17 +20,20 @@ from logger import logger
 RED_FILL = PatternFill(start_color="FF9999", end_color="FF9999", fill_type="solid")
 GREEN_FILL = PatternFill(start_color="99FF99", end_color="99FF99", fill_type="solid")
 YELLOW_FILL = PatternFill(start_color="FFFF99", end_color="FFFF99", fill_type="solid")
+LIGHT_BLUE_FILL = PatternFill(start_color="CCFFFF", end_color="CCFFFF", fill_type="solid")
 
 class ReportGenerator:
     @staticmethod
     def generate_report(batch_id: str, matrix: List[List[float]], eval_report: Dict,
-                        verification_report: Optional[Dict] = None, matrix_source: Optional[str] = None) -> Path:
+                        verification_report: Optional[Dict] = None, matrix_source: Optional[str] = None,
+                        rag_context: Optional[Dict] = None) -> Path:
         """
         Generates the final Excel file.
         Includes sheets:
         1. Cleaned Data (with color highlights for failures).
         2. QC Summary (Pass/Fail metrics).
         3. Verification (if cross-verification was performed).
+        4. RAG Context (if similar historical cases found).
         """
         if not matrix:
             raise ValueError(f"Cannot generate report for batch {batch_id}: matrix is empty.")
@@ -142,6 +146,48 @@ class ReportGenerator:
                     ws_verify.cell(row=m_idx, column=4, value=m["excel_value"])
                     diff_cell = ws_verify.cell(row=m_idx, column=5, value=m["difference"])
                     diff_cell.fill = RED_FILL
+
+        # Sheet 4: RAG Context (similar historical cases)
+        if ENABLE_RAG_CONTEXT and rag_context:
+            ws_rag = wb.create_sheet(title="RAG Context")
+            
+            ws_rag["A1"] = "Similar Historical Cases (AI-Powered Context)"
+            ws_rag["A1"].font = Font(bold=True, size=12)
+            
+            similar_batches = rag_context.get("similar_batches", [])
+            if similar_batches:
+                # Summary
+                ws_rag["A3"] = "Current Decision:" 
+                ws_rag["A3"].font = Font(bold=True)
+                ws_rag["B3"] = eval_report.get("decision", "UNKNOWN")
+                ws_rag["B3"].fill = LIGHT_BLUE_FILL
+                
+                # Similar cases table
+                header_row = 5
+                headers = ["Rank", "Batch ID", "Decision", "Similarity Score", "Shift"]
+                for c, h in enumerate(headers, start=1):
+                    ws_rag.cell(row=header_row, column=c, value=h).font = Font(bold=True)
+                    ws_rag.cell(row=header_row, column=c).fill = LIGHT_BLUE_FILL
+                
+                for i, (batch_id_hist, similarity, metadata) in enumerate(similar_batches, start=1):
+                    row = header_row + i
+                    ws_rag.cell(row=row, column=1, value=i)
+                    ws_rag.cell(row=row, column=2, value=batch_id_hist)
+                    ws_rag.cell(row=row, column=3, value=metadata.get("decision", "UNKNOWN"))
+                    sim_cell = ws_rag.cell(row=row, column=4, value=f"{similarity:.1%}")
+                    sim_cell.number_format = '0%'
+                    ws_rag.cell(row=row, column=5, value=metadata.get("shift", "UNKNOWN"))
+                
+                # Pattern analysis
+                decision_pattern = rag_context.get("decision_pattern", {})
+                if decision_pattern:
+                    pattern_row = header_row + len(similar_batches) + 3
+                    ws_rag.cell(row=pattern_row, column=1, value="Decision Pattern Analysis:").font = Font(bold=True)
+                    ws_rag.cell(row=pattern_row + 1, column=1, value=f"Similar cases in history: {decision_pattern.get('total_cases', 0)}")
+                    ws_rag.cell(row=pattern_row + 2, column=1, value=f"Frequency in last 100 batches: {decision_pattern.get('frequency', 'N/A')}")
+            else:
+                ws_rag["A3"] = "No similar historical cases found in database."
+                ws_rag["A3"].font = Font(italic=True, color="808080")
                 
         # Save output
         out_path = OUTPUT_DIR / f"{batch_id}_Report.xlsx"

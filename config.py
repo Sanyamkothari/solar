@@ -94,3 +94,11 @@ CATEGORY_REJECTED = "REJECTED"
 CATEGORY_MANUAL_REVIEW = "MANUAL_REVIEW_REQUIRED"
 CATEGORY_DATA_ERROR = "DATA_ERROR"
 CATEGORY_VERIFICATION_FAILED = "VERIFICATION_FAILED"
+
+# RAG (Retrieval-Augmented Generation) Settings
+ENABLE_RAG_CONTEXT = True
+RAG_DB_PATH = BASE_DIR / "models" / "batch_history.db"
+RAG_CHROMA_PATH = BASE_DIR / "models" / "chroma_db"
+RAG_EMBEDDING_MODEL = "all-MiniLM-L6-v2"  # Fast, ~50MB model
+RAG_TOP_K_SIMILAR = 3  # Retrieve top 3 similar historical batches
+RAG_SIMILARITY_THRESHOLD = 0.6  # Min similarity score to consider a match
