@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (viewName === 'processed') loadProcessed();
         else if (viewName === 'reports') { showReportList(); loadReports(); }
         else if (viewName === 'config') loadConfig();
+        else if (viewName === 'intelligence') loadIntelligence();
     }
 
     navItems.forEach(item => {
@@ -48,6 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const mainFile = document.getElementById('main-file');
     const submitBtn = document.getElementById('submit-btn');
+    let activeBatchId = null;
+    let activeRagContext = null;
+    let activeLlminsights = null;
     function checkSubmitStatus() { submitBtn.disabled = !(mainFile.files.length > 0); }
 
     function resetResultPanel() {
@@ -55,6 +59,22 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('decision-banner').innerHTML = '<i class="ph ph-hourglass"></i> <span>PROCESSING</span>';
         document.getElementById('matrix-source').textContent = 'Data Source: N/A';
         document.getElementById('verification-section').classList.add('hidden');
+        document.getElementById('rag-ai-section').classList.add('hidden');
+        document.getElementById('rag-cases-table').innerHTML = '<tr><th>Batch</th><th>Decision</th><th>Similarity</th><th>Shift</th><th>Root Cause</th><th>Feedback</th></tr>';
+        document.getElementById('rag-summary-text').textContent = 'No historical context loaded yet.';
+        document.getElementById('ai-summary-text').textContent = 'Upload a batch to generate an AI summary.';
+        document.getElementById('ai-causes-text').textContent = '—';
+        document.getElementById('ai-actions-text').textContent = '—';
+        document.getElementById('ai-confidence-chip').textContent = 'Pending';
+        document.getElementById('ai-provider-pill').textContent = 'Provider: —';
+        document.getElementById('ai-model-pill').textContent = 'Model: —';
+        document.getElementById('ai-fallback-pill').textContent = 'Fallback: —';
+        document.getElementById('feedback-batch-id').value = '';
+        document.getElementById('feedback-root-cause').value = '';
+        document.getElementById('feedback-notes').value = '';
+        document.getElementById('feedback-action').value = '';
+        document.getElementById('feedback-reviewed-by').value = '';
+        document.getElementById('feedback-confidence').value = 'Medium';
         document.getElementById('steps-container').innerHTML = '';
         document.getElementById('matrix-table').innerHTML = '';
         document.getElementById('rule-table').innerHTML = '<tr><th>Rule</th><th>Passed</th><th>Detail</th></tr>';
@@ -238,6 +258,117 @@ document.addEventListener('DOMContentLoaded', () => {
         try { const r = await fetch('/api/reports'); const d = await r.json(); renderFileList('reports-list', d.files, { showActions: true, showDownload: true }); }
         catch (e) { c.innerHTML = '<div class="empty-state"><p>Failed to load</p></div>'; }
     };
+
+    window.loadIntelligence = async function() {
+        const ragChip = document.getElementById('intel-rag-chip');
+        const llmChip = document.getElementById('intel-llm-chip');
+        const summaryCard = document.getElementById('intel-summary-card');
+        const feedbackTable = document.getElementById('intel-feedback-table');
+        const recentList = document.getElementById('intel-recent-list');
+
+        summaryCard.innerHTML = '<div class="loading-row"><div class="spinner-sm"></div> Loading intelligence...</div>';
+        feedbackTable.innerHTML = '<tr><th>Batch</th><th>Decision</th><th>Root Cause</th><th>Action Taken</th><th>Reviewed By</th></tr>';
+        recentList.innerHTML = '';
+
+        try {
+            const res = await fetch('/api/intelligence');
+            const data = await res.json();
+            renderIntelligence(data);
+            if (ragChip) ragChip.textContent = data.enabled ? 'Live' : 'Disabled';
+            if (llmChip) llmChip.textContent = data.llm_enabled ? 'Enabled' : 'Fallback Only';
+        } catch (e) {
+            summaryCard.innerHTML = '<div class="empty-state"><p>Failed to load intelligence context</p></div>';
+        }
+    };
+
+    function renderIntelligence(data) {
+        document.getElementById('intel-rag-cases').textContent = data.total_batches ?? 0;
+        document.getElementById('intel-feedback-cases').textContent = data.feedback_cases ?? 0;
+        document.getElementById('intel-llm-status').textContent = data.llm_enabled ? 'Ready' : 'Fallback';
+        document.getElementById('intel-feedback-status').textContent = data.feedback_enabled ? 'Active' : 'Off';
+
+        const summaryCard = document.getElementById('intel-summary-card');
+        summaryCard.innerHTML = `
+            <h4>System Summary</h4>
+            <p>${data.enabled ? 'RAG is active and capturing similar cases.' : 'RAG is currently disabled.'}</p>
+            <div class="summary-badges">
+                <span class="mini-pill">Total Cases: ${data.total_batches ?? 0}</span>
+                <span class="mini-pill">Feedback Cases: ${data.feedback_cases ?? 0}</span>
+                <span class="mini-pill">LLM: ${data.llm_enabled ? 'On' : 'Fallback'}</span>
+            </div>
+        `;
+
+        const feedbackTable = document.getElementById('intel-feedback-table');
+        const feedbackRows = data.recent_feedback_cases || [];
+        if (feedbackRows.length === 0) {
+            feedbackTable.innerHTML += '<tr><td colspan="5" class="empty-row">No operator feedback has been saved yet.</td></tr>';
+        } else {
+            feedbackRows.forEach(row => {
+                feedbackTable.innerHTML += `
+                    <tr>
+                        <td>${row.batch_id || '—'}</td>
+                        <td>${row.decision || '—'}</td>
+                        <td>${row.root_cause || '—'}</td>
+                        <td>${row.action_taken || '—'}</td>
+                        <td>${row.reviewed_by || '—'}</td>
+                    </tr>`;
+            });
+        }
+
+        const recentList = document.getElementById('intel-recent-list');
+        recentList.innerHTML = '';
+        (data.recent_batches || []).forEach(batch => {
+            recentList.innerHTML += `
+                <div class="intel-list-item">
+                    <div>
+                        <strong>${batch.batch_id || 'UNKNOWN'}</strong>
+                        <span>${batch.timestamp || '—'} · ${batch.shift || 'UNKNOWN'}</span>
+                    </div>
+                    <span class="status-chip ${String(batch.decision || '').toUpperCase() === 'APPROVED' ? 'status-chip-success' : 'status-chip-soft'}">${batch.decision || 'UNKNOWN'}</span>
+                </div>`;
+        });
+    }
+
+    const feedbackForm = document.getElementById('feedback-form');
+    if (feedbackForm) {
+        feedbackForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!activeBatchId) {
+                showToast('No reviewed batch is available for feedback yet.', 'error');
+                return;
+            }
+
+            const payload = {
+                batch_id: activeBatchId,
+                root_cause: document.getElementById('feedback-root-cause').value.trim(),
+                operator_feedback: document.getElementById('feedback-notes').value.trim(),
+                feedback_confidence: document.getElementById('feedback-confidence').value,
+                reviewed_by: document.getElementById('feedback-reviewed-by').value.trim() || 'Operator',
+                action_taken: document.getElementById('feedback-action').value.trim(),
+                reviewed_at: new Date().toISOString(),
+            };
+
+            const btn = document.getElementById('btn-submit-feedback');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner-sm"></div> Saving...';
+            try {
+                const res = await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.error || 'Unable to save feedback');
+                showToast('Feedback saved and linked to the batch', 'success');
+                loadIntelligence();
+            } catch (error) {
+                showToast(String(error), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph ph-paper-plane-right"></i> Save Feedback';
+            }
+        });
+    }
 
     // ═══════════════════════════════════════════════════════════
     //                   REPORT DETAIL + GRAPHS
@@ -482,11 +613,33 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${editRow('verification', 'match_threshold', 'Match Threshold', cfg.verification.match_threshold, 'number', '0.01')}
                 </div>
             </div>
+            <div class="panel config-card">
+                <h3><i class="ph ph-brain"></i> Intelligence & Feedback</h3>
+                <div class="config-items">
+                    ${editRow('intelligence', 'rag_enabled', 'Enable RAG Context', cfg.intelligence.rag_enabled, 'checkbox')}
+                    ${editRow('intelligence', 'rag_top_k_similar', 'Similar Cases to Retrieve', cfg.intelligence.rag_top_k_similar, 'number')}
+                    ${editRow('intelligence', 'rag_similarity_threshold', 'Similarity Threshold', cfg.intelligence.rag_similarity_threshold, 'number', '0.01')}
+                    ${editRow('intelligence', 'rag_llm_enabled', 'Enable Local LLM', cfg.intelligence.rag_llm_enabled, 'checkbox')}
+                    ${editRow('intelligence', 'llm_provider', 'LLM Provider', cfg.intelligence.llm_provider, 'text')}
+                    ${editRow('intelligence', 'ollama_model_name', 'Ollama Model', cfg.intelligence.ollama_model_name, 'text')}
+                    ${editRow('intelligence', 'ollama_base_url', 'Ollama URL', cfg.intelligence.ollama_base_url, 'text')}
+                    ${editRow('intelligence', 'llm_temperature', 'LLM Temperature', cfg.intelligence.llm_temperature, 'number', '0.05')}
+                    ${editRow('intelligence', 'llm_max_tokens', 'LLM Max Tokens', cfg.intelligence.llm_max_tokens, 'number')}
+                    ${editRow('intelligence', 'operator_feedback_enabled', 'Enable Feedback Loop', cfg.intelligence.operator_feedback_enabled, 'checkbox')}
+                </div>
+            </div>
         `;
     }
 
     function editRow(section, key, label, value, type, step) {
         const stepAttr = step ? `step="${step}"` : '';
+        if (type === 'checkbox') {
+            const checked = value ? 'checked' : '';
+            return `<div class="config-row">
+                <span class="cr-label">${label}</span>
+                <label class="switch"><input type="checkbox" class="config-input" data-section="${section}" data-key="${key}" ${checked}><span class="slider"></span></label>
+            </div>`;
+        }
         return `<div class="config-row">
             <span class="cr-label">${label}</span>
             <input type="${type}" class="config-input" data-section="${section}" data-key="${key}" value="${value}" ${stepAttr}>
@@ -519,7 +672,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const sec = input.dataset.section;
             const key = input.dataset.key;
             if (!payload[sec]) payload[sec] = {};
-            payload[sec][key] = input.type === 'number' ? parseFloat(input.value) : input.value;
+            if (input.type === 'checkbox') payload[sec][key] = input.checked;
+            else payload[sec][key] = input.type === 'number' ? parseFloat(input.value) : input.value;
         });
 
         saveBtn.disabled = true;
@@ -552,6 +706,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── Results Renderer ───
     function renderResults(result) {
         const decision = result.decision || 'UNKNOWN';
+        activeBatchId = result.batch_id || null;
+        activeRagContext = result.rag_context || null;
+        activeLlminsights = result.llm_insights || null;
         const banner = document.getElementById('decision-banner');
         banner.className = `decision-banner decision-${decision}`;
         let iconClass = 'warning-circle';
@@ -631,6 +788,53 @@ document.addEventListener('DOMContentLoaded', () => {
             const maxC = Math.max(...Object.values(m.rule_C.failures_per_bar).concat([0]));
             const r3 = `<tr><td>Rule C (≤0.1 total)</td><td>${m.rule_C.passed ? '✅ Yes' : '❌ No'}</td><td>Total: ${m.rule_C.total_failures} (limit: ${m.rule_C.allowed_total}), Max/bar: ${maxC} (limit: ${m.rule_C.allowed_per_bar})</td></tr>`;
             rTable.innerHTML += r1 + r2 + r3;
+        }
+
+        const ragSection = document.getElementById('rag-ai-section');
+        const ragContext = result.rag_context || {};
+        const llmInsights = result.llm_insights || {};
+        const similar = ragContext.similar_batches || [];
+        const feedbackCases = ragContext.feedback_cases || [];
+
+        if (ragSection) {
+            ragSection.classList.remove('hidden');
+            document.getElementById('feedback-batch-id').value = activeBatchId || '';
+            document.getElementById('rag-similar-count').textContent = similar.length;
+            document.getElementById('rag-feedback-count').textContent = feedbackCases.length;
+            document.getElementById('rag-trend-value').textContent = ragContext.decision_pattern?.frequency || 'N/A';
+            document.getElementById('rag-summary-text').textContent = ragContext.context_summary || 'No similar historical cases found.';
+
+            const ragTable = document.getElementById('rag-cases-table');
+            ragTable.innerHTML = '<tr><th>Batch</th><th>Decision</th><th>Similarity</th><th>Shift</th><th>Root Cause</th><th>Feedback</th></tr>';
+            if (similar.length === 0) {
+                ragTable.innerHTML += '<tr><td colspan="6" class="empty-row">No similar historical cases matched this batch.</td></tr>';
+            } else {
+                similar.forEach(([batchId, similarity, metadata]) => {
+                    ragTable.innerHTML += `
+                        <tr>
+                            <td>${batchId || '—'}</td>
+                            <td>${metadata?.decision || 'UNKNOWN'}</td>
+                            <td>${(similarity * 100).toFixed(1)}%</td>
+                            <td>${metadata?.shift || 'UNKNOWN'}</td>
+                            <td>${metadata?.root_cause || '—'}</td>
+                            <td>${metadata?.operator_feedback || '—'}</td>
+                        </tr>`;
+                });
+            }
+        }
+
+        if (llmInsights) {
+            document.getElementById('ai-summary-text').textContent = llmInsights.summary || 'No summary returned.';
+            document.getElementById('ai-causes-text').textContent = llmInsights.likely_causes || '—';
+            document.getElementById('ai-actions-text').textContent = llmInsights.recommended_actions || '—';
+            document.getElementById('ai-confidence-chip').textContent = llmInsights.confidence || 'Unknown';
+            document.getElementById('ai-provider-pill').textContent = `Provider: ${llmInsights.provider || '—'}`;
+            document.getElementById('ai-model-pill').textContent = `Model: ${llmInsights.model || '—'}`;
+            document.getElementById('ai-fallback-pill').textContent = `Fallback: ${llmInsights.used_fallback ? 'Yes' : 'No'}`;
+        }
+
+        if (!ragContext && !llmInsights) {
+            document.getElementById('rag-ai-section').classList.add('hidden');
         }
     }
 

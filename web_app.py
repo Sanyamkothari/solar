@@ -1,5 +1,6 @@
 import os
 import json
+import sqlite3
 import shutil
 import tempfile
 from pathlib import Path
@@ -10,7 +11,7 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Response
+from fastapi import Response, Request
 
 # Adjust Python path
 import sys
@@ -21,9 +22,11 @@ if str(BASE_DIR) not in sys.path:
 import config as cfg_module
 from config import (
     INPUT_DIR, PROCESSED_DIR, FAILED_DIR, OUTPUT_DIR, LOGS_DIR,
+    RAG_DB_PATH, ENABLE_RAG_CONTEXT, ENABLE_RAG_LLM_SUMMARY, ENABLE_OPERATOR_FEEDBACK,
 )
 from input_handler import InputHandler
 from main import process_file
+from rag_engine import BatchHistoryDB
 
 app = FastAPI(title="Factory QC Web Dashboard")
 
@@ -38,6 +41,8 @@ app.add_middleware(
 STATIC_DIR = BASE_DIR / "static"
 STATIC_DIR.mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+rag_history_db = BatchHistoryDB(RAG_DB_PATH)
 
 
 def _file_info(f: Path) -> dict:
@@ -56,6 +61,66 @@ def _human_size(num_bytes: int) -> str:
             return f"{num_bytes:.1f} {unit}"
         num_bytes /= 1024
     return f"{num_bytes:.1f} TB"
+
+
+def _rag_summary(limit: int = 5) -> dict:
+    """Summarize RAG history for the UI."""
+    summary = {
+        "enabled": ENABLE_RAG_CONTEXT,
+        "llm_enabled": ENABLE_RAG_LLM_SUMMARY,
+        "feedback_enabled": ENABLE_OPERATOR_FEEDBACK,
+        "total_batches": 0,
+        "feedback_cases": 0,
+        "recent_batches": [],
+        "recent_feedback_cases": [],
+    }
+
+    if not RAG_DB_PATH.exists():
+        return summary
+
+    try:
+        with sqlite3.connect(RAG_DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            total_row = conn.execute("SELECT COUNT(*) AS total FROM batch_history").fetchone()
+            feedback_row = conn.execute(
+                """
+                SELECT COUNT(*) AS total
+                FROM batch_history
+                WHERE COALESCE(root_cause, '') != '' OR COALESCE(operator_feedback, '') != ''
+                """
+            ).fetchone()
+            recent_rows = conn.execute(
+                """
+                SELECT batch_id, timestamp, decision, shift, equipment_id,
+                       root_cause, operator_feedback, feedback_confidence,
+                       reviewed_by, reviewed_at, action_taken
+                FROM batch_history
+                ORDER BY created_at DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+            feedback_rows = conn.execute(
+                """
+                SELECT batch_id, timestamp, decision, shift, equipment_id,
+                       root_cause, operator_feedback, feedback_confidence,
+                       reviewed_by, reviewed_at, action_taken
+                FROM batch_history
+                WHERE COALESCE(root_cause, '') != '' OR COALESCE(operator_feedback, '') != ''
+                ORDER BY reviewed_at DESC, created_at DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+
+        summary["total_batches"] = int(total_row["total"] if total_row else 0)
+        summary["feedback_cases"] = int(feedback_row["total"] if feedback_row else 0)
+        summary["recent_batches"] = [dict(row) for row in recent_rows]
+        summary["recent_feedback_cases"] = [dict(row) for row in feedback_rows]
+    except Exception as e:
+        summary["error"] = str(e)
+
+    return summary
 
 
 # ─────────────────────── Pages ───────────────────────
@@ -86,11 +151,19 @@ async def get_metrics():
     processed_count = len(list(PROCESSED_DIR.glob('*')))
     output_count = len(list(OUTPUT_DIR.glob('*')))
     pending_count = len(InputHandler.get_pending_files())
+    rag_summary = _rag_summary(limit=1)
     return {
         "processed": processed_count,
         "reports": output_count,
         "pending": pending_count,
+        "rag_cases": rag_summary.get("total_batches", 0),
+        "feedback_cases": rag_summary.get("feedback_cases", 0),
     }
+
+
+@app.get("/api/intelligence")
+async def get_intelligence():
+    return _rag_summary(limit=5)
 
 
 # ─────────────────────── File Listings ───────────────────────
@@ -308,6 +381,18 @@ EDITABLE_CONFIG = {
         "tolerance": ("VERIFY_TOLERANCE", float),
         "match_threshold": ("VERIFY_MATCH_THRESHOLD", float),
     },
+    "intelligence": {
+        "rag_enabled": ("ENABLE_RAG_CONTEXT", bool),
+        "rag_top_k_similar": ("RAG_TOP_K_SIMILAR", int),
+        "rag_similarity_threshold": ("RAG_SIMILARITY_THRESHOLD", float),
+        "rag_llm_enabled": ("ENABLE_RAG_LLM_SUMMARY", bool),
+        "llm_provider": ("LLM_PROVIDER", str),
+        "ollama_model_name": ("OLLAMA_MODEL_NAME", str),
+        "ollama_base_url": ("OLLAMA_BASE_URL", str),
+        "llm_temperature": ("LLM_TEMPERATURE", float),
+        "llm_max_tokens": ("LLM_MAX_TOKENS", int),
+        "operator_feedback_enabled": ("ENABLE_OPERATOR_FEEDBACK", bool),
+    },
 }
 
 @app.get("/api/config")
@@ -337,7 +422,46 @@ async def get_config():
             "tolerance": cfg_module.VERIFY_TOLERANCE,
             "match_threshold": cfg_module.VERIFY_MATCH_THRESHOLD,
         },
+        "intelligence": {
+            "rag_enabled": cfg_module.ENABLE_RAG_CONTEXT,
+            "rag_top_k_similar": cfg_module.RAG_TOP_K_SIMILAR,
+            "rag_similarity_threshold": cfg_module.RAG_SIMILARITY_THRESHOLD,
+            "rag_llm_enabled": cfg_module.ENABLE_RAG_LLM_SUMMARY,
+            "llm_provider": cfg_module.LLM_PROVIDER,
+            "ollama_model_name": cfg_module.OLLAMA_MODEL_NAME,
+            "ollama_base_url": cfg_module.OLLAMA_BASE_URL,
+            "llm_temperature": cfg_module.LLM_TEMPERATURE,
+            "llm_max_tokens": cfg_module.LLM_MAX_TOKENS,
+            "operator_feedback_enabled": cfg_module.ENABLE_OPERATOR_FEEDBACK,
+        },
     }
+
+
+@app.post("/api/feedback")
+async def submit_feedback(request: Request):
+    """Store operator feedback for a reviewed batch."""
+    try:
+        body = await request.json()
+        batch_id = str(body.get("batch_id", "")).strip()
+        if not batch_id:
+            return JSONResponse(status_code=400, content={"success": False, "error": "batch_id is required"})
+
+        feedback = {
+            "root_cause": str(body.get("root_cause", "")).strip(),
+            "operator_feedback": str(body.get("operator_feedback", "")).strip(),
+            "feedback_confidence": str(body.get("feedback_confidence", "")).strip(),
+            "reviewed_by": str(body.get("reviewed_by", "")).strip(),
+            "reviewed_at": str(body.get("reviewed_at", datetime.now().isoformat(timespec="seconds"))).strip(),
+            "action_taken": str(body.get("action_taken", "")).strip(),
+        }
+
+        updated = rag_history_db.update_feedback(batch_id, feedback)
+        if not updated:
+            return JSONResponse(status_code=404, content={"success": False, "error": "Batch not found"})
+
+        return {"success": True, "batch_id": batch_id}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
 
 
 @app.post("/api/config")

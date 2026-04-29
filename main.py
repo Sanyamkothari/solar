@@ -5,6 +5,7 @@ Runs a continuous loop over the input directory, coordinates the batch manager, 
 """
 import time
 import argparse
+from datetime import datetime
 from input_handler import InputHandler
 from validator import Validator, ValidationError, ValidationWarning
 from quality_rules import QualityEvaluator
@@ -170,7 +171,7 @@ def process_file(filepath, excel_ref_path=None, steps_callback=None):
         eval_report=eval_report,
         matrix=matrix,
         metadata={
-            "timestamp": batch.batch_id,
+            "timestamp": datetime.now().isoformat(timespec="seconds"),
             "source_file": filepath.name,
         },
     )

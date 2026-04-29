@@ -31,6 +31,9 @@
             <a href="#" class="nav-item" data-view="reports" id="nav-reports">
                 <i class="ph ph-file-text"></i> Reports
             </a>
+            <a href="#" class="nav-item" data-view="intelligence" id="nav-intelligence">
+                <i class="ph ph-sparkle"></i> Intelligence
+            </a>
         </nav>
 
         <div class="nav-section-label">System</div>
@@ -145,6 +148,94 @@
                                 <tr><th>Rule</th><th>Passed</th><th>Detail</th></tr>
                             </table>
                         </div>
+
+                        <div id="rag-ai-section" class="hidden ai-stack">
+                            <div class="ai-card-grid">
+                                <div class="panel inner-panel ai-panel">
+                                    <div class="panel-head">
+                                        <h3><i class="ph ph-stack"></i> RAG Context</h3>
+                                        <span class="status-chip status-chip-soft" id="rag-badge">Ready</span>
+                                    </div>
+                                    <div class="ai-metrics-row">
+                                        <div class="mini-stat"><span>Similar Cases</span><strong id="rag-similar-count">0</strong></div>
+                                        <div class="mini-stat"><span>Feedback Cases</span><strong id="rag-feedback-count">0</strong></div>
+                                        <div class="mini-stat"><span>Decision Trend</span><strong id="rag-trend-value">N/A</strong></div>
+                                    </div>
+                                    <div class="rag-summary" id="rag-summary-text">No historical context loaded yet.</div>
+                                    <div class="table-container rag-table-container">
+                                        <table class="rag-table" id="rag-cases-table">
+                                            <tr><th>Batch</th><th>Decision</th><th>Similarity</th><th>Shift</th><th>Root Cause</th><th>Feedback</th></tr>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="panel inner-panel ai-panel">
+                                    <div class="panel-head">
+                                        <h3><i class="ph ph-brain"></i> AI Insight</h3>
+                                        <span class="status-chip" id="ai-confidence-chip">Pending</span>
+                                    </div>
+                                    <div class="ai-insight-block">
+                                        <label>Summary</label>
+                                        <p id="ai-summary-text">Upload a batch to generate an AI summary.</p>
+                                    </div>
+                                    <div class="ai-insight-block two-up">
+                                        <div>
+                                            <label>Likely Causes</label>
+                                            <p id="ai-causes-text">—</p>
+                                        </div>
+                                        <div>
+                                            <label>Recommended Actions</label>
+                                            <p id="ai-actions-text">—</p>
+                                        </div>
+                                    </div>
+                                    <div class="ai-meta-row">
+                                        <div class="mini-pill" id="ai-provider-pill">Provider: —</div>
+                                        <div class="mini-pill" id="ai-model-pill">Model: —</div>
+                                        <div class="mini-pill" id="ai-fallback-pill">Fallback: —</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="panel inner-panel feedback-panel">
+                                <div class="panel-head">
+                                    <h3><i class="ph ph-chat-teardrop-text"></i> Operator Feedback</h3>
+                                    <span class="status-chip status-chip-soft">Phase 3</span>
+                                </div>
+                                <form id="feedback-form" class="feedback-form">
+                                    <input type="hidden" id="feedback-batch-id">
+                                    <div class="form-grid">
+                                        <div class="form-field">
+                                            <label for="feedback-root-cause">Root Cause</label>
+                                            <input id="feedback-root-cause" class="form-input" type="text" placeholder="e.g. Solder temperature variance">
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="feedback-confidence">Confidence</label>
+                                            <select id="feedback-confidence" class="form-input">
+                                                <option>Low</option>
+                                                <option selected>Medium</option>
+                                                <option>High</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="feedback-reviewed-by">Reviewed By</label>
+                                            <input id="feedback-reviewed-by" class="form-input" type="text" placeholder="QA Lead">
+                                        </div>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="feedback-notes">Operator Feedback</label>
+                                        <textarea id="feedback-notes" class="form-input form-textarea" rows="3" placeholder="Notes from the review session"></textarea>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="feedback-action">Action Taken</label>
+                                        <textarea id="feedback-action" class="form-input form-textarea" rows="2" placeholder="Hold batch, inspect process temperature logs, etc."></textarea>
+                                    </div>
+                                    <div class="feedback-actions">
+                                        <button type="submit" class="btn-primary btn-feedback" id="btn-submit-feedback"><i class="ph ph-paper-plane-right"></i> Save Feedback</button>
+                                        <span class="feedback-hint">Saved feedback is reused by RAG and AI summaries.</span>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -230,6 +321,80 @@
             </div>
         </section>
 
+        <!-- ═══ VIEW: INTELLIGENCE ═══ -->
+        <section class="view" id="view-intelligence">
+            <header class="topbar">
+                <div class="page-title">
+                    <h1>Intelligence</h1>
+                    <p>Historical context, AI summaries, and operator feedback loop</p>
+                </div>
+                <button class="btn-refresh" onclick="loadIntelligence()" title="Refresh">
+                    <i class="ph ph-arrows-clockwise"></i>
+                </button>
+            </header>
+
+            <div class="metrics-grid metrics-4" id="intel-metrics">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon-wrap"><i class="ph ph-database"></i></div>
+                        <h3>RAG Cases</h3>
+                        <h2 id="intel-rag-cases">0</h2>
+                    </div>
+                    <div class="metric-footer"><span>Historical batches indexed</span></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon-wrap"><i class="ph ph-chat-teardrop-text"></i></div>
+                        <h3>Feedback Cases</h3>
+                        <h2 id="intel-feedback-cases">0</h2>
+                    </div>
+                    <div class="metric-footer"><span>Annotated root-cause records</span></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon-wrap"><i class="ph ph-brain"></i></div>
+                        <h3>LLM Status</h3>
+                        <h2 id="intel-llm-status">Ready</h2>
+                    </div>
+                    <div class="metric-footer"><span>Local insight generation</span></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon-wrap"><i class="ph ph-seal-check"></i></div>
+                        <h3>Feedback Loop</h3>
+                        <h2 id="intel-feedback-status">Active</h2>
+                    </div>
+                    <div class="metric-footer"><span>Operator annotations enabled</span></div>
+                </div>
+            </div>
+
+            <div class="intel-layout">
+                <div class="panel intel-panel">
+                    <div class="panel-head">
+                        <h3><i class="ph ph-stack"></i> Recent Feedback Cases</h3>
+                        <span class="status-chip status-chip-soft" id="intel-rag-chip">Live</span>
+                    </div>
+                    <div class="table-container intel-table-wrap">
+                        <table class="intel-table" id="intel-feedback-table">
+                            <tr><th>Batch</th><th>Decision</th><th>Root Cause</th><th>Action Taken</th><th>Reviewed By</th></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel intel-panel">
+                    <div class="panel-head">
+                        <h3><i class="ph ph-rocket-launch"></i> AI Pipeline Status</h3>
+                        <span class="status-chip status-chip-soft" id="intel-llm-chip">Ollama</span>
+                    </div>
+                    <div class="intel-summary-card" id="intel-summary-card">
+                        <h4>System Summary</h4>
+                        <p>Loading intelligence context...</p>
+                    </div>
+                    <div class="intel-list" id="intel-recent-list"></div>
+                </div>
+            </div>
+        </section>
+
         <!-- ═══ VIEW: CONFIGURATION ═══ -->
         <section class="view" id="view-config">
             <header class="topbar">
@@ -263,6 +428,7 @@
                     An automated quality control pipeline for manufacturing solder point inspection.
                     The system uses OCR and image processing to extract measurement data from factory test equipment,
                     applies configurable QC rules, and generates detailed inspection reports.
+                    The latest intelligence layer adds historical retrieval, AI summaries, and operator feedback learning.
                 </p>
                 <div class="about-features">
                     <div class="about-feature">
@@ -285,9 +451,14 @@
                         <h4>Cross-Verification</h4>
                         <p>Image vs Excel source comparison to validate OCR accuracy within configurable tolerance</p>
                     </div>
+                    <div class="about-feature">
+                        <i class="ph ph-brain"></i>
+                        <h4>Historical Intelligence</h4>
+                        <p>RAG-powered matching, local AI summaries, and operator feedback to learn from past batches</p>
+                    </div>
                 </div>
                 <div class="about-footer">
-                    <p>Built with FastAPI · Python · Vanilla JS</p>
+                    <p>Built with FastAPI · Python · Vanilla JS · RAG + Local AI</p>
                 </div>
             </div>
         </section>
