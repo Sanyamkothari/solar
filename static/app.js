@@ -1,4 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[ch]));
+    const escapeAttr = escapeHtml;
 
     // ─── SPA Navigation ───
     const navItems = document.querySelectorAll('.nav-item[data-view]');
@@ -632,7 +640,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const r3 = `<tr><td>Rule C (≤0.1 total)</td><td>${m.rule_C.passed ? '✅ Yes' : '❌ No'}</td><td>Total: ${m.rule_C.total_failures} (limit: ${m.rule_C.allowed_total}), Max/bar: ${maxC} (limit: ${m.rule_C.allowed_per_bar})</td></tr>`;
             rTable.innerHTML += r1 + r2 + r3;
         }
+
     }
+
 
     // ─── Init ───
     fetchMetrics();

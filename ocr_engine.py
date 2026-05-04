@@ -58,21 +58,30 @@ class OCREngine:
         """
         client = OCREngine._get_vision_client()
 
-        success, encoded_image = cv2.imencode('.jpg', image_np)
+        # Compress to 75% JPEG quality — reduces payload size significantly
+        # without degrading OCR accuracy (GCP Vision handles lossy compression well).
+        encode_params = [cv2.IMWRITE_JPEG_QUALITY, 75]
+        success, encoded_image = cv2.imencode('.jpg', image_np, encode_params)
         if not success:
             raise ValidationError("Failed to encode image for Google Cloud Vision.")
             
         content = encoded_image.tobytes()
+        logging.info(f"Encoded image for GCP Vision: {len(content) / 1024:.1f} KB")
         image = vision.Image(content=content)
         
         try:
-            response = client.document_text_detection(image=image, timeout=30)
+            response = client.document_text_detection(image=image, timeout=90)
         except Exception as e:
             err_text = str(e)
             auth_error_markers = (
                 "ACCESS_TOKEN_EXPIRED",
                 "invalid authentication credentials",
                 "UNAUTHENTICATED",
+            )
+            timeout_markers = (
+                "deadline exceeded",
+                "504",
+                "timed out",
             )
 
             # Token/auth errors can occur after long idle periods. Rebuild the
@@ -82,7 +91,7 @@ class OCREngine:
                 OCREngine._reset_vision_client()
                 client = OCREngine._get_vision_client()
                 try:
-                    response = client.document_text_detection(image=image, timeout=30)
+                    response = client.document_text_detection(image=image, timeout=90)
                 except Exception as retry_error:
                     retry_text = str(retry_error)
                     if "invalid jwt" in retry_text.lower() or "reasonable timeframe" in retry_text.lower():
@@ -92,6 +101,16 @@ class OCREngine:
                             f"Original error: {retry_error}"
                         )
                     raise ValidationError(f"Google Cloud Vision API request failed after retry: {retry_error}")
+            elif any(marker in err_text.lower() for marker in timeout_markers):
+                # GCP Vision timed out — retry once with a longer timeout.
+                logging.warning(f"Vision API timeout ({e}); retrying once with 120s timeout.")
+                try:
+                    response = client.document_text_detection(image=image, timeout=120)
+                except Exception as retry_error:
+                    raise ValidationError(
+                        f"Google Cloud Vision API timed out on retry: {retry_error}. "
+                        "The image may be too complex or GCP is experiencing high load."
+                    )
             else:
                 raise ValidationError(f"Google Cloud Vision API request failed: {e}")
 

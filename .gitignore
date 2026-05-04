@@ -1,7 +1,37 @@
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Environment
 .env
 .DS_Store
+
+# GCP Credentials (never commit)
 google_credentials.json
+
+# Runtime directories — generated at run time, not source code
+input/
+processed/
 failed/
-*.log
+output/
+logs/
+debug/
+
+# ML model weights and vector databases
+models/batch_history.db
+models/chroma_db/
+models/*.pt
+yolov8n.pt
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
